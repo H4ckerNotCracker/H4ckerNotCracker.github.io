@@ -1,0 +1,344 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="zh-cn">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+  <meta name="renderer" content="webkit">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no", user-scalable=no">
+  <title>看快手如何干掉Fastjson背着键盘去流浪</title>
+  <link rel="shortcut icon" href="">
+  
+    
+    
+      <link rel="stylesheet" href="/css/bootstrap.min.css">
+    
+      <link rel="stylesheet" href="/css/font-awesome.min.css">
+    
+      <link rel="stylesheet" href="/css/atom-one-dark.css">
+    
+      <link rel="stylesheet" href="/css/jquery.fancybox.min.css">
+    
+      <link rel="stylesheet" href="/css/nprogress.min.css">
+    
+      <link rel="stylesheet" href="/css/valine.css">
+    
+      <link rel="stylesheet" href="/css/life.css">
+    
+  
+
+  
+
+  <!-- jQuery first, then Tether, then Bootstrap JS. -->
+  
+  
+  
+    <script src="/js/jquery-2.2.4.min.js"></script>
+  
+    <script src="https://cdn1.lncld.net/static/js/3.1.0/av-min.js"></script>
+  
+    <script src="/js/jquery.pjax.js"></script>
+  
+    <script src="/js/nprogress.min.js"></script>
+  
+    <script src="/js/tether.min.js"></script>
+  
+    <script src="/js/bootstrap.min.js"></script>
+  
+    <script src="/js/highlight.min.js"></script>
+  
+    <script src="/js/highlightjs-line-numbers.min.js"></script>
+  
+    <script src="/js/jquery.fancybox.js"></script>
+  
+    <script src="/js/jquery.qrcode.min.js"></script>
+  
+    <script src="/js/Valine.min.js"></script>
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+<body>
+<script>AV.init({appId:'',appKey:''});</script>
+<script type="text/javascript">
+      var config = {
+            ClasS: 'Counter',
+            el:'.views',
+            elP: '.views-post'
+      }
+</script>
+<div class="container">
+    <div class="row blog-box-shadow">
+        <!--博客主栏开始-->
+        <div class="col-xl-9 col-lg-12 blog-main" id="pjax-box">
+            <header class="blog-header">
+                <a href="http://justfortest.cc" class="blog-header-mobile-title">背着键盘去流浪</a>
+                <a href="javascript:;" class="blog-header-navbar-btn"><i class="fa fa-bars"></i></a>
+                <nav class="blog-header-navbar blog-header-fixed">
+                    <ul class="blog-navbar-links">
+                        
+                          <li class="blog-nav-item"><a href="/" class="transition">首页</a></li>
+                        
+                          <li class="blog-nav-item"><a href="/about/" class="transition">关于</a></li>
+                        
+                        <div class="blog-navbar-right">
+                            <form action="">
+                                <div class="input-group">
+                                    <input type="text" class="blog-header-search" placeholder="search...">
+                                    <buttn type="submit" class="blog-header-search-btn"><i class="fa fa-search"></i></buttn>
+                                </div>
+                            </form>
+                        </div>
+                    </ul>
+                </nav>
+            </header>
+                
+<header class="blog-post-page-title">
+    <h4>看快手如何干掉Fastjson</h4>
+    <time datetime="2020-12-17T04:25:00.000Z"><i class="fa fa-clock-o"></i>2020-12-17</time>
+    
+    
+    
+    
+	
+    
+</header>
+<div class="blog-main-post blog-post-page-box">
+    <article class="blog-post-block blog-post-page-content">
+        <section>
+            
+                <p>#看快手如何干掉Fastjson</p>
+<p>##1.Fastjson 漏洞史<br>文章从公众号转移过来，在博客上做个记录。<br>Fastjson是一个阿里巴巴开发的java高性能JSON库，应用范围非常广，在github上star数已经超过2.2万。从2017年1月份到现在，Fastjson 已出现三次无任何条件限制的的远程代码执行（RCE）漏洞，在其中两次版本更新中，Fastjson官方在知情的情况下从未披露其更新涉及到漏洞，导致这些漏洞以0day在野，有的长达一年之久。另外其涉及到远程代码执行漏洞更新已有10多次，小编也做过好几次贡献，业内苦Fastjson 久已。下图是一个四哥给的调侃：<br><img src="/images/fastjson-0.png" alt="0"><br>四哥给的调侃真的只是调侃吗？下面我们来具体看下Fastjson的更新历史：<br><img src="/images/fastjson-1.png" alt="1"><br>画红框框的都修复了无任何限制的RCE漏洞，并且前两次中都没提到一个漏洞字眼，可想而知，根本就没把漏洞当做一回事，更谈不上CVE等漏洞管理跟踪措施。</p>
+<p>2.快手Fastjson应急那些事<br>Fastjson使用非常广泛，在各大互联网公司各大框架中都有涉及。在 2019 年，快手因为 Fastjson 发起两次应急响应，分别是针对Fastjson-1.2.48版本的漏洞应急和Fastjson-1.2.60版本的漏洞应急。<br>在第一次应急中，由于该漏洞是无任何限制的RCE 0day，我们验证完PoC之后，就推动主站自查，在24小时内完成了升级。漏洞很严重，当时内部有些研发可能感知没那么清楚，为了产生更大的威慑力，我们在某个业务站点getshell，截了几张大大的getshell图丢到大群里，大家的动作立马快速了很多。主站主要靠人找服务就完成了升级，但是其他业务去找到所有存量还是有一定挑战的。下面是我们当时做的一些事情：<br>1.扫描器构造PoC发动扫描，安全组编写了Fastjson的扫描插件，对公司所有站点发起了扫描，还真发现一个漏洞。<br>2.利用快手代码搜索平台搜索代码仓库，当时还没有第三方库平台，惭愧。<br>3.从制品库搜索，解压了所有jar包，搜索相应代码，找出相应责任人。<br>第二次应急是针对Fastjson-1.2.60版本的，有了第一次的经验，从容了一些，搞定PoC，快速推动业务升级即可。<br>在2020年5 月末 Fastjson 又出 超级RCE 0day，各个安全团队都是焦头烂额，快手安全组从容了很多，我们只剩下个位数仓库受影响。</p>
+<p>3.形成替代方案<br>在Fastjson-1.2.48和Fastjson-1.2.60版本漏洞的应急中，我们一直在反思，是不是得干掉Fastjson，怎么说服业务干掉Fastjson。对于Fastjson的代码质量，基础架构部有一些研究基础，认为Fastjson代码质量不是很好，这为后续推动Fastjson下线奠定了基础。<br>于是安全组调研了自身封装的Jackson和gson，形成一个初步结论，具体如下表：<br>| JSON库 | 安全性 | 性能 | 业务适配性 |<br>| ——– | —– | :—-: | —– |<br>| Fastjson | 1.漏洞通报机制差，0day漏洞满天飞，飞一年半载的不在话下。2.全局安全风险。3.代码质量差，如dos漏洞。4.官方在testcase中泄露漏洞PoC | 强 |适配度佳|<br>| Jackson2.x(xx in KF) | 1.已自行封装，去除不安全属性；2.漏洞管理机制好，CVE通告；3.从架构上无全局风险 | 自行封装版本加入afterburner，性能强 |自行封装，适配度佳 |<br>| gson | 基本无安全风险，代码质量高 | 一般 | 需自行评估 |</p>
+<p>4.推动替代<br>有了前面的替代方案，接下来就是推动替代，说实话这真是一个很艰难的任务，对我们的挑战非常大。<br>第一要务是管住增量，目前是在第三方库的引入上未做强制卡点，但是对于Fastjson这种高危库，安全组在白盒扫描器中添加了相应规则，发现有新增的Fastjson，及时提醒业务方不允许使用。另外也在Check-style禁用了Fastjson，这样研发在开发的过程中就会感知到引入了高危的组件。<br>其次是存量Fastjson的替换，和基础架构组对出替代方案，依照业务优先级，优先推动主站等核心业务做替换，这些核心业务本身也很重视安全问题，几方立马就把这个事情推动下去了。这里面的核心挑战就是核心业务核心组件存在Fastjson依赖，第一步得把这里面的依赖给去除，否则其他位置还会间接引入Fastjson依赖。推完核心业务，接着按照类似模式推动对外业务，接着推动对内业务，历时快一年总共推动了不到1000个仓库完成替换。目前已经干掉了95%+Fastjson依赖。<br>对于快手来说，在安全工程师不会被饿死这件事上，fastjson在已经难以做贡献了（小编表示好慌）。</p>
+<p>5.第三方库漏洞管控<br>第一次应急的过程中还在愁怎么找全Fastjson，不管是快手代码搜索平台还是制品库，都存在覆盖面不全的问题。后面为了提升应急速度，特别是这种第三方库漏洞的应急速度，从gitlab拉取了所有第三方库，通过和第三方漏洞库比较，形成了 Java 三方依赖安全检测。<br><img src="/images/fastjson-2.png" alt="2"><br>第三方库漏洞甚至供应链漏洞已经成为不容忽视的一个漏洞形态，我们接下来也会投入更多力量到第三库漏洞管控上，欢迎大家一起交流进步。</p>
+
+            
+        </section>
+        <footer class="blog-post-page-tags">
+        
+			
+		
+        </footer>
+    </article>
+    <article class="blog-post-page-readmore">
+    	
+    	
+		
+			<a href="/2020/12/28/frp-change-plan/" class="blog-post-page-readmore-prev" data-toggle="tooltip" data-placement="top" title="FRP改造计划续">上一篇</a>
+		
+
+		
+		
+			<a href="/2020/01/02/browser-encode-decode/" class="blog-post-page-readmore-next" data-toggle="tooltip" data-placement="top" title="编码与解码 -- 浏览器做了什么">下一篇</a>
+		
+
+        <div style="clear: both;"></div>
+    </article>
+
+    <article class="blog-post-block blog-post-page-content">
+            <div class="row">
+            
+                <div class="col-md-4 col-sm-4 post-page-more-btn">
+                    <span class="post-comments-btn btn btn-info btn-block" data-toggle="tooltip" data-placement="top" title="本站采用Disqus评论组件，若您没有科学上网可能会无法查看并评论">加载评论</span>
+                </div>
+            
+                <div class="col-md-4 col-sm-4 post-page-more-btn">
+                    <span  data-toggle="modal" data-target="#post-donate-content">
+                        <span id="post-donate-btn" class="btn btn-danger btn-block" data-toggle="tooltip" data-placement="top" title="如果您觉得本文还不错或者对您有帮助，可以考虑打赏一下作者哦">打赏本文</span>
+                    </span>
+                </div>
+                <div class="col-md-4 col-sm-4 post-page-more-btn">
+                    <span  data-toggle="modal" data-target="#post-qrcode-content">
+                        <span><span id="post-qrcode-btn" class="btn btn-success btn-block" data-toggle="tooltip" data-placement="top" title="微信扫描二维码手机端查看本文及分享本文">二维码</span></span>
+                    </span>
+                </div>
+            </div>
+        <div class="post-more-function-br"></div>
+
+        <div class="modal fade" id="post-donate-content" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">打赏本文</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row post-donate-content">
+                            <div class="col-md-4">
+                                <p>支付宝</p>
+                                <img class="post-donate-content-img no-lightbox" src="http://i.niupic.com/images/2022/12/30/aepT.png"/>
+                            </div>
+                            <div class="col-md-4">
+                                <p>微信</p>
+                                <img class="post-donate-content-img no-lightbox" src="http://i.niupic.com/images/2022/12/30/aepT.png"/>
+                            </div>
+                            <div class="col-md-4">
+                                <p>财付通</p>
+                                <img class="post-donate-content-img no-lightbox" src="http://i.niupic.com/images/2022/12/30/aepT.png"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="post-qrcode-content" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">文章二维码</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row post-qrcode-content">
+                            <span class="post-qrcode-content-canvas"></span>
+                            <img class="post-qrcode-content-img no-lightbox" src=""/>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // post QRcode
+            // 中文转码
+            function toUtf8(str) {
+                var out, i, len, c;
+                out = "";
+                len = str.length;
+                for (i = 0; i < len; i++) {
+                    c = str.charCodeAt(i);
+                    if ((c >= 0x0001) && (c <= 0x007F)) {
+                        out += str.charAt(i);
+                    } else if (c > 0x07FF) {
+                        out += String.fromCharCode(0xE0 | ((c >> 12) & 0x0F));
+                        out += String.fromCharCode(0x80 | ((c >> 6) & 0x3F));
+                        out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+                    } else {
+                        out += String.fromCharCode(0xC0 | ((c >> 6) & 0x1F));
+                        out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+                    }
+                }
+                return out;
+            }
+            // 生成
+            var qrcode= $('.post-qrcode-content-canvas').qrcode({width: 150,height: 150,text: toUtf8("http://justfortest.cc/2020/12/17/kuaishou-kill-fastjson/")}).hide();
+            var canvas=qrcode.find('canvas').get(0);
+            $('.post-qrcode-content-img').attr('src',canvas.toDataURL('image/jpg'));
+        </script>
+
+        
+    </article>
+    
+</div>
+
+                
+            <footer class="blog-footer">
+                <p class="blog-footer-left">Copyright © 2017 <a href="http://justfortest.cc">背着键盘去流浪</a></p>
+                <p class="blog-footer-right">Powered by <a href="https://hexo.io" target="_blank">Hexo</a>,Themes <a href="https://weic.me/themes-life/" target="_blank">Life</a></p>
+            </footer>
+        </div><!--博客主栏结束-->
+        <!--博客侧边栏开始-->
+        <div class="col-xl-3 blog-sidebar">
+            <div class="blog-sidebar-title">
+                <a href="">背着键盘去流浪</a>
+            </div>
+            <div class="blog-sidebar-logo">
+                <img src="http://i.niupic.com/images/2022/12/30/aepT.png">
+            </div>
+            <div class="blog-sidebar-count blog-sidebar-padding">
+                <div class="blog-sidebar-count-left">
+                    <p class="blog-sidebar-count-p">11</p>
+                    <span class="blog-sidebar-count-span">文章</span>
+                </div>
+                <div class="blog-sidebar-count-right">
+                    <p class="blog-sidebar-count-p">0</p>
+                    <span class="blog-sidebar-count-span">标签</span>
+                </div>
+                <div style="clear: both;"></div>
+            </div>
+            <div class="blog-sidebar-icon blog-sidebar-padding">
+                <ul>
+                    <li><a href="" class="icon-github" target="_blank" data-toggle="tooltip" data-placement="top" title="Github"><i class="fa fa-github"></i></a></li>
+                    <li><a href="" class="icon-weibo" target="_blank" data-toggle="tooltip" data-placement="top" title="新浪微博"><i class="fa fa-weibo"></i></a></li>
+                    <li><a href="" class="icon-twitter" target="_blank" data-toggle="tooltip" data-placement="top" title="Twitter"><i class="fa fa-twitter"></i></a></li>
+                    <!--<li><a href="" class="icon-facebook" target="_blank" data-toggle="tooltip" data-placement="top" title="FaceBook"><i class="fa fa-facebook"></i></a></li>-->
+                    <li><a href="mailto:" class="icon-email" data-toggle="tooltip" data-placement="top" title="E-Mail"><i class="fa fa-envelope"></i></a></li>
+                    <li><a href="" class="icon-rss" data-toggle="tooltip" target="_blank" data-placement="top" title="RSS"><i class="fa fa-rss"></i></a></li>
+                </ul>
+            </div>
+            <div class="blog-sidebar-categories">
+                <h4 class="blog-sidebar-h4"><i class="fa fa-folder-open"></i>&nbsp;文章分类</h4>
+                <ul class="list-group blog-sidebar-padding">
+                  
+                </ul>
+            </div>
+            <div class="blog-sidebar-tags">
+                <h4 class="blog-sidebar-h4"><i class="fa fa-tag"></i>&nbsp;标签云</h4>
+                <ul class="blog-sidebar-tags-ul blog-sidebar-padding">
+                  
+                </ul>
+            </div>
+            <script>
+              // 博客侧栏标签云随机色
+              var tag_cloud = $('.tag-could');
+              tag_cloud.each(function () {
+                  var Cnum = 9;
+                  var Crand = parseInt(Math.random() * Cnum);
+                  $(this).addClass("tag-could" + Crand);
+              })
+            </script>
+            <!--返回顶部按钮-->
+            <div class="retop">
+                <i class="fa fa-angle-up"></i>
+            </div>
+        </div><!--博客侧边栏结束-->
+    </div>
+</div>
+<script src="/js/LeanStatistics.min.js"></script>
+<script src="/js/Life.js"></script>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+    otherF();
+    LeanStatistics();
+    $(document).pjax('a', '#pjax-box', {fragment:'#pjax-box', timeout:8000}).on('pjax:complete', function() {
+      $('pre code').each(function(i, block){
+        hljs.highlightBlock(block);
+      })
+      $('code.hljs').each(function(i, block) {
+        hljs.lineNumbersBlock(block);
+      });
+      LeanStatistics();
+    }).on('pjax:start', function() { NProgress.start(); }).on('pjax:end',   function() {
+      NProgress.done();
+      otherF();
+    });
+</script>
+</body>
+</html>

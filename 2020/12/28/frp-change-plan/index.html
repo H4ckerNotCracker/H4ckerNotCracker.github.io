@@ -1,0 +1,407 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="zh-cn">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+  <meta name="renderer" content="webkit">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no", user-scalable=no">
+  <title>FRP改造计划续背着键盘去流浪</title>
+  <link rel="shortcut icon" href="">
+  
+    
+    
+      <link rel="stylesheet" href="/css/bootstrap.min.css">
+    
+      <link rel="stylesheet" href="/css/font-awesome.min.css">
+    
+      <link rel="stylesheet" href="/css/atom-one-dark.css">
+    
+      <link rel="stylesheet" href="/css/jquery.fancybox.min.css">
+    
+      <link rel="stylesheet" href="/css/nprogress.min.css">
+    
+      <link rel="stylesheet" href="/css/valine.css">
+    
+      <link rel="stylesheet" href="/css/life.css">
+    
+  
+
+  
+
+  <!-- jQuery first, then Tether, then Bootstrap JS. -->
+  
+  
+  
+    <script src="/js/jquery-2.2.4.min.js"></script>
+  
+    <script src="https://cdn1.lncld.net/static/js/3.1.0/av-min.js"></script>
+  
+    <script src="/js/jquery.pjax.js"></script>
+  
+    <script src="/js/nprogress.min.js"></script>
+  
+    <script src="/js/tether.min.js"></script>
+  
+    <script src="/js/bootstrap.min.js"></script>
+  
+    <script src="/js/highlight.min.js"></script>
+  
+    <script src="/js/highlightjs-line-numbers.min.js"></script>
+  
+    <script src="/js/jquery.fancybox.js"></script>
+  
+    <script src="/js/jquery.qrcode.min.js"></script>
+  
+    <script src="/js/Valine.min.js"></script>
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+<body>
+<script>AV.init({appId:'',appKey:''});</script>
+<script type="text/javascript">
+      var config = {
+            ClasS: 'Counter',
+            el:'.views',
+            elP: '.views-post'
+      }
+</script>
+<div class="container">
+    <div class="row blog-box-shadow">
+        <!--博客主栏开始-->
+        <div class="col-xl-9 col-lg-12 blog-main" id="pjax-box">
+            <header class="blog-header">
+                <a href="http://justfortest.cc" class="blog-header-mobile-title">背着键盘去流浪</a>
+                <a href="javascript:;" class="blog-header-navbar-btn"><i class="fa fa-bars"></i></a>
+                <nav class="blog-header-navbar blog-header-fixed">
+                    <ul class="blog-navbar-links">
+                        
+                          <li class="blog-nav-item"><a href="/" class="transition">首页</a></li>
+                        
+                          <li class="blog-nav-item"><a href="/about/" class="transition">关于</a></li>
+                        
+                        <div class="blog-navbar-right">
+                            <form action="">
+                                <div class="input-group">
+                                    <input type="text" class="blog-header-search" placeholder="search...">
+                                    <buttn type="submit" class="blog-header-search-btn"><i class="fa fa-search"></i></buttn>
+                                </div>
+                            </form>
+                        </div>
+                    </ul>
+                </nav>
+            </header>
+                
+<header class="blog-post-page-title">
+    <h4>FRP改造计划续</h4>
+    <time datetime="2020-12-28T11:00:00.000Z"><i class="fa fa-clock-o"></i>2020-12-28</time>
+    
+    
+    
+    
+	
+    
+</header>
+<div class="blog-main-post blog-post-page-box">
+    <article class="blog-post-block blog-post-page-content">
+        <section>
+            
+                <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>之前@Wfox师傅在群里提到“通过websocket协议让FRP用上域前置，可以隐藏真实服务ip地址”。最近没有项目，重新进行一下frp改造计划。</p>
+<h3 id="可行性证明"><a href="#可行性证明" class="headerlink" title="可行性证明"></a>可行性证明</h3><p>先用dns域名解析来证明域前置方案在frp上是可行的，这里也可以直接修改本地hosts文件来实现dns域名解析的效果。</p>
+<p>比如我们用如下frpc.ini</p>
+<p>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11  </p>
+<p>[common]<br>server_addr &#x3D; dwnwdqndlnqwln2321321.com<br>server_port &#x3D; 23333<br>token &#x3D; uknowsec<br>protocol &#x3D; websocket<br>tls_enable &#x3D; true  </p>
+<p>[http_proxy]<br>type &#x3D; tcp<br>remote_port &#x3D; 10002<br>plugin &#x3D; socks5  </p>
+<p>让frpc认证数据包走websocket协议。</p>
+<p><img src="https://uknowsec-1251971873.cos.ap-shanghai.myqcloud.com/image-20201229234612622.png" alt="image-20201229234612622"></p>
+<p>可以看到认证是通过websocket协议，这里特别标注出来了Host头，要实现域前置，我们只要把host修改为我们的指定回源域名即可。所以证明了“通过websocket协议让FRP用上域前置”是可行的。</p>
+<h3 id="Websocket依赖修改"><a href="#Websocket依赖修改" class="headerlink" title="Websocket依赖修改"></a>Websocket依赖修改</h3><p>跟进frp源码，我们可以到websocket依赖包<code>websocket/hybi.go</code>文件下的hybiClientHandshake函数。</p>
+<p>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19  </p>
+<p>func hybiClientHandshake(config *Config, br *bufio.Reader, bw *bufio.Writer) (err error) {<br> bw.WriteString(“GET “ + config.Location.RequestURI() + “ HTTP&#x2F;1.1\r\n”)  </p>
+<p> &#x2F;&#x2F; According to RFC 6874, an HTTP client, proxy, or other<br> &#x2F;&#x2F; intermediary must remove any IPv6 zone identifier attached<br> &#x2F;&#x2F; to an outgoing URI.<br> bw.WriteString(“Host: “ + removeZone(config.Location.Host) + “\r\n”)<br> bw.WriteString(“Upgrade: websocket\r\n”)<br> bw.WriteString(“Connection: Upgrade\r\n”)<br> nonce :&#x3D; generateNonce()<br> if config.handshakeData !&#x3D; nil {<br> nonce &#x3D; []byte(config.handshakeData[“key”])<br> }<br> bw.WriteString(“Sec-WebSocket-Key: “ + string(nonce) + “\r\n”)<br> bw.WriteString(“Origin: “ + strings.ToLower(config.Origin.String()) + “\r\n”)  </p>
+<p> …<br> return nil<br>}  </p>
+<p>可以看到Host是通过<code>config.Location.Host</code>进行赋值的，我们再一步一步的往回看调用即可。</p>
+<p>同时frp调用<code>websocket</code>依赖在<code>pkg/util/net/websocket.go</code>里的<code>ConnectWebsocketServer</code>方法</p>
+<p>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22  </p>
+<p>func ConnectWebsocketServer(addr string) (net.Conn, error) {<br> addr &#x3D; “ws:&#x2F;&#x2F;“ + addr + FrpWebsocketPath<br> uri, err :&#x3D; url.Parse(addr)<br> if err !&#x3D; nil {<br> return nil, err<br> }  </p>
+<p> origin :&#x3D; “http:&#x2F;&#x2F;“ + uri.Host<br> cfg, err :&#x3D; websocket.NewConfig(addr, origin)<br> if err !&#x3D; nil {<br> return nil, err<br> }<br> cfg.Dialer &#x3D; &amp;net.Dialer{<br> Timeout: 10 * time.Second,<br> }  </p>
+<p> conn, err :&#x3D; websocket.DialConfig(cfg)<br> if err !&#x3D; nil {<br> return nil, err<br> }<br> return conn, nil<br>}  </p>
+<p>所以只需要在往<code>websocket.NewConfig</code>多传入一个指定的host参数即可。</p>
+<p>新加入的host参数只要在<code>cmd/frpc/sub/root.go</code>的<code>RegisterCommonFlags</code>里进行注册即可。</p>
+<h4 id="测试效果"><a href="#测试效果" class="headerlink" title="测试效果"></a>测试效果</h4><p><img src="https://uknowsec-1251971873.cos.ap-shanghai.myqcloud.com/image-20201230002508915.png" alt="image-20201230002508915"></p>
+<p>这样我们就实现了<code>通过websocket协议让FRP用上域前置</code>。</p>
+<h3 id="WSS实现"><a href="#WSS实现" class="headerlink" title="WSS实现"></a>WSS实现</h3><p>由上图，可见用websocket还是特征比较明显的，比如<code>/~!frp</code>。这里我们可以通过如下修改</p>
+<p><code>pkg/util/net/websocket.go</code>下的变量即可。</p>
+<p>1<br>2<br>3  </p>
+<p>const (<br> FrpWebsocketPath &#x3D; “&#x2F;~!frp”<br>)  </p>
+<p>同时，我们也修改frp使之实现wss协议。</p>
+<p>@Wfox师傅提醒frp有人pull了支持wss协议的修改代码。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/fatedier/frp/pull/1919/files">https://github.com/fatedier/frp/pull/1919/files</a></p>
+<p>通过pull里的修改就可以实现wss协议了</p>
+<p>同时由于在某云域前置里，用wss协议的情况下，server_addr用域名会不能正常回源，只能用ip。且会存在证书报错。</p>
+<p><img src="https://uknowsec-1251971873.cos.ap-shanghai.myqcloud.com/image-20201230003824977.png" alt="image-20201230003824977"></p>
+<p>这里可以通过做如下修改<code>pkg/util/net/websocket.go</code>里的<code>ConnectWebsocketServer</code>函数</p>
+<p>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22<br>23<br>24<br>25<br>26<br>27<br>28<br>29<br>30<br>31<br>32<br>33<br>34<br>35<br>36<br>37<br>38<br>39<br>40<br>41<br>42<br>43<br>44<br>45  </p>
+<p>&#x2F;&#x2F; addr: domain:port<br>func ConnectWebsocketServer(addr string, websocket_domain string, isSecure bool) (net.Conn, error) {<br> if isSecure {<br> ho :&#x3D; strings.Split(addr, “:”)<br> ip, err :&#x3D; net.ResolveIPAddr(“ip”, ho[0])<br> ip_addr :&#x3D; ip.String() + “:” + ho[1]<br> if err !&#x3D; nil {<br> return nil, err<br> }<br> addr &#x3D; “wss:&#x2F;&#x2F;“ + ip_addr + FrpWebsocketPath<br> } else {<br> addr &#x3D; “ws:&#x2F;&#x2F;“ + addr + FrpWebsocketPath<br> }<br> uri, err :&#x3D; url.Parse(addr)<br> if err !&#x3D; nil {<br> return nil, err<br> }  </p>
+<p> var origin string<br> if isSecure {<br> ho :&#x3D; strings.Split(uri.Host, “:”)<br> ip, err :&#x3D; net.ResolveIPAddr(“ip”, ho[0])<br> ip_addr :&#x3D; ip.String() + “:” + ho[1]<br> if err !&#x3D; nil {<br> return nil, err<br> }<br> origin &#x3D; “https:&#x2F;&#x2F;“ + ip_addr<br> } else {<br> origin &#x3D; “http:&#x2F;&#x2F;“ + uri.Host<br> }  </p>
+<p> cfg, err :&#x3D; websocket.NewConfig(addr, origin, websocket_domain)<br> if err !&#x3D; nil {<br> return nil, err<br> }<br> cfg.Dialer &#x3D; &amp;net.Dialer{<br> Timeout: 10 * time.Second,<br> }  </p>
+<p> conn, err :&#x3D; websocket.DialConfig(cfg)<br> if err !&#x3D; nil {<br> return nil, err<br> }<br> return conn, nil<br>}  </p>
+<p>用<code>net.ResolveIPAddr</code>先获取域名所对应ip地址，再进行wss和https协议的使用即可。</p>
+<p>另外修复证书错误问题。</p>
+<p>修改<code>websocket/dial.go</code>里的<code>dialWithDialer</code>方法。</p>
+<p>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16  </p>
+<p>func dialWithDialer(dialer *net.Dialer, config *Config) (conn net.Conn, err error) {<br> switch config.Location.Scheme {<br> case “ws”:<br> conn, err &#x3D; dialer.Dial(“tcp”, parseAuthority(config.Location))  </p>
+<p> case “wss”:<br> config.TlsConfig &#x3D; &amp;tls.Config{<br> InsecureSkipVerify: true,<br> }<br> conn, err &#x3D; tls.DialWithDialer(dialer, “tcp”, parseAuthority(config.Location), config.TlsConfig)  </p>
+<p> default:<br> err &#x3D; ErrBadScheme<br> }<br> return<br>}  </p>
+<p>当使用wss协议的时候，将<code>TlsConfig.InsecureSkipVerify</code>设置为true，即可忽略证书错误了。</p>
+<h4 id="测试效果-1"><a href="#测试效果-1" class="headerlink" title="测试效果"></a>测试效果</h4><p><img src="https://uknowsec-1251971873.cos.ap-shanghai.myqcloud.com/image-20201230003610771.png" alt="image-20201230003610771"></p>
+<p>可见图中的认证数据包已经以wss进行认证了。</p>
+<h3 id="配置文件自删除"><a href="#配置文件自删除" class="headerlink" title="配置文件自删除"></a>配置文件自删除</h3><p>在其中看@lz520520师傅的文章里看到</p>
+<p><a target="_blank" rel="noopener" href="https://sec.lz520520.cn:4430/2020/11/566/#0x03">https://sec.lz520520.cn:4430/2020/11/566/#0x03</a></p>
+<blockquote>
+<p>只要读取后删除配置文件就好了呀，这个就很简单，我多添加了一个配置文件参数delete，用于判断是否自动删除配置文件。</p>
+</blockquote>
+<p>这一点还是不错的，添加参数，读取完配置文件启动frpc后，自动删除配置文件。</p>
+<p>同样相同的方法在<code>cmd/frpc/sub/root.go</code>的<code>RegisterCommonFlags</code>里进行注册参数即可。</p>
+<p>然后在<code>cmd/frpc/sub/root.go</code>里的<code>startService</code>方法里进行判断调用删除配置文件即可。</p>
+<p>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22<br>23<br>24<br>25<br>26<br>27<br>28<br>29<br>30<br>31<br>32<br>33<br>34<br>35<br>36<br>37<br>38<br>39<br>40<br>41<br>42  </p>
+<p>func startService(<br> cfg config.ClientCommonConf,<br> pxyCfgs map[string]config.ProxyConf,<br> visitorCfgs map[string]config.VisitorConf,<br> cfgFile string,<br>) (err error) {  </p>
+<p> log.InitLog(cfg.LogWay, cfg.LogFile, cfg.LogLevel,<br> cfg.LogMaxDays, cfg.DisableLogColor)  </p>
+<p> if cfg.DNSServer !&#x3D; “” {<br> s :&#x3D; cfg.DNSServer<br> if !strings.Contains(s, “:”) {<br> s +&#x3D; “:53”<br> }<br> &#x2F;&#x2F; Change default dns server for frpc<br> net.DefaultResolver &#x3D; &amp;net.Resolver{<br> PreferGo: true,<br> Dial: func(ctx context.Context, network, address string) (net.Conn, error) {<br> return net.Dial(“udp”, s)<br> },<br> }<br> }<br> svr, errRet :&#x3D; client.NewService(cfg, pxyCfgs, visitorCfgs, cfgFile)<br> if errRet !&#x3D; nil {<br> err &#x3D; errRet<br> return<br> }<br> if cfg.DELEnable &#x3D;&#x3D; true {<br> os.Remove(cfgFile)<br> }<br> &#x2F;&#x2F; Capture the exit signal if we use kcp.<br> if cfg.Protocol &#x3D;&#x3D; “kcp” {<br> go handleSignal(svr)<br> }  </p>
+<p> err &#x3D; svr.Run()<br> if cfg.Protocol &#x3D;&#x3D; “kcp” {<br> &lt;-kcpDoneCh<br> }<br> return<br>}  </p>
+<p>这样就可以实现配置文件自动删除功能了。</p>
+<h3 id="Github"><a href="#Github" class="headerlink" title="Github"></a>Github</h3><p>没有环境或无法正常编译可直接到github下载</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/uknowsec/frpModify">https://github.com/uknowsec/frpModify</a></p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p><a target="_blank" rel="noopener" href="https://github.com/fatedier/frp/pull/1919/files">https://github.com/fatedier/frp/pull/1919/files</a></p>
+<p><a target="_blank" rel="noopener" href="https://sec.lz520520.cn:4430/2020/11/566/">https://sec.lz520520.cn:4430/2020/11/566/</a></p>
+<p><a href="/posts/notes/OXID_Find%EF%BC%9A%E9%80%9A%E8%BF%87OXID%E8%A7%A3%E6%9E%90%E5%99%A8%E8%8E%B7%E5%8F%96Windows%E8%BF%9C%E7%A8%8B%E4%B8%BB%E6%9C%BA%E4%B8%8A%E7%BD%91%E5%8D%A1%E5%9C%B0%E5%9D%80.html">NEXT</a></p>
+
+            
+        </section>
+        <footer class="blog-post-page-tags">
+        
+			
+		
+        </footer>
+    </article>
+    <article class="blog-post-page-readmore">
+    	
+    	
+		
+			<a href="/2021/05/02/ssl-fingerprint-bypass/" class="blog-post-page-readmore-prev" data-toggle="tooltip" data-placement="top" title="SSL 指纹识别和绕过">上一篇</a>
+		
+
+		
+		
+			<a href="/2020/12/17/kuaishou-kill-fastjson/" class="blog-post-page-readmore-next" data-toggle="tooltip" data-placement="top" title="看快手如何干掉Fastjson">下一篇</a>
+		
+
+        <div style="clear: both;"></div>
+    </article>
+
+    <article class="blog-post-block blog-post-page-content">
+            <div class="row">
+            
+                <div class="col-md-4 col-sm-4 post-page-more-btn">
+                    <span class="post-comments-btn btn btn-info btn-block" data-toggle="tooltip" data-placement="top" title="本站采用Disqus评论组件，若您没有科学上网可能会无法查看并评论">加载评论</span>
+                </div>
+            
+                <div class="col-md-4 col-sm-4 post-page-more-btn">
+                    <span  data-toggle="modal" data-target="#post-donate-content">
+                        <span id="post-donate-btn" class="btn btn-danger btn-block" data-toggle="tooltip" data-placement="top" title="如果您觉得本文还不错或者对您有帮助，可以考虑打赏一下作者哦">打赏本文</span>
+                    </span>
+                </div>
+                <div class="col-md-4 col-sm-4 post-page-more-btn">
+                    <span  data-toggle="modal" data-target="#post-qrcode-content">
+                        <span><span id="post-qrcode-btn" class="btn btn-success btn-block" data-toggle="tooltip" data-placement="top" title="微信扫描二维码手机端查看本文及分享本文">二维码</span></span>
+                    </span>
+                </div>
+            </div>
+        <div class="post-more-function-br"></div>
+
+        <div class="modal fade" id="post-donate-content" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">打赏本文</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row post-donate-content">
+                            <div class="col-md-4">
+                                <p>支付宝</p>
+                                <img class="post-donate-content-img no-lightbox" src="http://i.niupic.com/images/2022/12/30/aepT.png"/>
+                            </div>
+                            <div class="col-md-4">
+                                <p>微信</p>
+                                <img class="post-donate-content-img no-lightbox" src="http://i.niupic.com/images/2022/12/30/aepT.png"/>
+                            </div>
+                            <div class="col-md-4">
+                                <p>财付通</p>
+                                <img class="post-donate-content-img no-lightbox" src="http://i.niupic.com/images/2022/12/30/aepT.png"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="post-qrcode-content" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">文章二维码</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row post-qrcode-content">
+                            <span class="post-qrcode-content-canvas"></span>
+                            <img class="post-qrcode-content-img no-lightbox" src=""/>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // post QRcode
+            // 中文转码
+            function toUtf8(str) {
+                var out, i, len, c;
+                out = "";
+                len = str.length;
+                for (i = 0; i < len; i++) {
+                    c = str.charCodeAt(i);
+                    if ((c >= 0x0001) && (c <= 0x007F)) {
+                        out += str.charAt(i);
+                    } else if (c > 0x07FF) {
+                        out += String.fromCharCode(0xE0 | ((c >> 12) & 0x0F));
+                        out += String.fromCharCode(0x80 | ((c >> 6) & 0x3F));
+                        out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+                    } else {
+                        out += String.fromCharCode(0xC0 | ((c >> 6) & 0x1F));
+                        out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+                    }
+                }
+                return out;
+            }
+            // 生成
+            var qrcode= $('.post-qrcode-content-canvas').qrcode({width: 150,height: 150,text: toUtf8("http://justfortest.cc/2020/12/28/frp-change-plan/")}).hide();
+            var canvas=qrcode.find('canvas').get(0);
+            $('.post-qrcode-content-img').attr('src',canvas.toDataURL('image/jpg'));
+        </script>
+
+        
+    </article>
+    
+</div>
+
+                
+            <footer class="blog-footer">
+                <p class="blog-footer-left">Copyright © 2017 <a href="http://justfortest.cc">背着键盘去流浪</a></p>
+                <p class="blog-footer-right">Powered by <a href="https://hexo.io" target="_blank">Hexo</a>,Themes <a href="https://weic.me/themes-life/" target="_blank">Life</a></p>
+            </footer>
+        </div><!--博客主栏结束-->
+        <!--博客侧边栏开始-->
+        <div class="col-xl-3 blog-sidebar">
+            <div class="blog-sidebar-title">
+                <a href="">背着键盘去流浪</a>
+            </div>
+            <div class="blog-sidebar-logo">
+                <img src="http://i.niupic.com/images/2022/12/30/aepT.png">
+            </div>
+            <div class="blog-sidebar-count blog-sidebar-padding">
+                <div class="blog-sidebar-count-left">
+                    <p class="blog-sidebar-count-p">11</p>
+                    <span class="blog-sidebar-count-span">文章</span>
+                </div>
+                <div class="blog-sidebar-count-right">
+                    <p class="blog-sidebar-count-p">0</p>
+                    <span class="blog-sidebar-count-span">标签</span>
+                </div>
+                <div style="clear: both;"></div>
+            </div>
+            <div class="blog-sidebar-icon blog-sidebar-padding">
+                <ul>
+                    <li><a href="" class="icon-github" target="_blank" data-toggle="tooltip" data-placement="top" title="Github"><i class="fa fa-github"></i></a></li>
+                    <li><a href="" class="icon-weibo" target="_blank" data-toggle="tooltip" data-placement="top" title="新浪微博"><i class="fa fa-weibo"></i></a></li>
+                    <li><a href="" class="icon-twitter" target="_blank" data-toggle="tooltip" data-placement="top" title="Twitter"><i class="fa fa-twitter"></i></a></li>
+                    <!--<li><a href="" class="icon-facebook" target="_blank" data-toggle="tooltip" data-placement="top" title="FaceBook"><i class="fa fa-facebook"></i></a></li>-->
+                    <li><a href="mailto:" class="icon-email" data-toggle="tooltip" data-placement="top" title="E-Mail"><i class="fa fa-envelope"></i></a></li>
+                    <li><a href="" class="icon-rss" data-toggle="tooltip" target="_blank" data-placement="top" title="RSS"><i class="fa fa-rss"></i></a></li>
+                </ul>
+            </div>
+            <div class="blog-sidebar-categories">
+                <h4 class="blog-sidebar-h4"><i class="fa fa-folder-open"></i>&nbsp;文章分类</h4>
+                <ul class="list-group blog-sidebar-padding">
+                  
+                </ul>
+            </div>
+            <div class="blog-sidebar-tags">
+                <h4 class="blog-sidebar-h4"><i class="fa fa-tag"></i>&nbsp;标签云</h4>
+                <ul class="blog-sidebar-tags-ul blog-sidebar-padding">
+                  
+                </ul>
+            </div>
+            <script>
+              // 博客侧栏标签云随机色
+              var tag_cloud = $('.tag-could');
+              tag_cloud.each(function () {
+                  var Cnum = 9;
+                  var Crand = parseInt(Math.random() * Cnum);
+                  $(this).addClass("tag-could" + Crand);
+              })
+            </script>
+            <!--返回顶部按钮-->
+            <div class="retop">
+                <i class="fa fa-angle-up"></i>
+            </div>
+        </div><!--博客侧边栏结束-->
+    </div>
+</div>
+<script src="/js/LeanStatistics.min.js"></script>
+<script src="/js/Life.js"></script>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+    otherF();
+    LeanStatistics();
+    $(document).pjax('a', '#pjax-box', {fragment:'#pjax-box', timeout:8000}).on('pjax:complete', function() {
+      $('pre code').each(function(i, block){
+        hljs.highlightBlock(block);
+      })
+      $('code.hljs').each(function(i, block) {
+        hljs.lineNumbersBlock(block);
+      });
+      LeanStatistics();
+    }).on('pjax:start', function() { NProgress.start(); }).on('pjax:end',   function() {
+      NProgress.done();
+      otherF();
+    });
+</script>
+</body>
+</html>

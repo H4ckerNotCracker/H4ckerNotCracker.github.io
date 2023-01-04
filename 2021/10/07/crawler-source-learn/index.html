@@ -1,0 +1,1312 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="zh-cn">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+  <meta name="renderer" content="webkit">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no", user-scalable=no">
+  <title>crawlergo 动态爬虫 源码学习背着键盘去流浪</title>
+  <link rel="shortcut icon" href="">
+  
+    
+    
+      <link rel="stylesheet" href="/css/bootstrap.min.css">
+    
+      <link rel="stylesheet" href="/css/font-awesome.min.css">
+    
+      <link rel="stylesheet" href="/css/atom-one-dark.css">
+    
+      <link rel="stylesheet" href="/css/jquery.fancybox.min.css">
+    
+      <link rel="stylesheet" href="/css/nprogress.min.css">
+    
+      <link rel="stylesheet" href="/css/valine.css">
+    
+      <link rel="stylesheet" href="/css/life.css">
+    
+  
+
+  
+
+  <!-- jQuery first, then Tether, then Bootstrap JS. -->
+  
+  
+  
+    <script src="/js/jquery-2.2.4.min.js"></script>
+  
+    <script src="https://cdn1.lncld.net/static/js/3.1.0/av-min.js"></script>
+  
+    <script src="/js/jquery.pjax.js"></script>
+  
+    <script src="/js/nprogress.min.js"></script>
+  
+    <script src="/js/tether.min.js"></script>
+  
+    <script src="/js/bootstrap.min.js"></script>
+  
+    <script src="/js/highlight.min.js"></script>
+  
+    <script src="/js/highlightjs-line-numbers.min.js"></script>
+  
+    <script src="/js/jquery.fancybox.js"></script>
+  
+    <script src="/js/jquery.qrcode.min.js"></script>
+  
+    <script src="/js/Valine.min.js"></script>
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+<body>
+<script>AV.init({appId:'',appKey:''});</script>
+<script type="text/javascript">
+      var config = {
+            ClasS: 'Counter',
+            el:'.views',
+            elP: '.views-post'
+      }
+</script>
+<div class="container">
+    <div class="row blog-box-shadow">
+        <!--博客主栏开始-->
+        <div class="col-xl-9 col-lg-12 blog-main" id="pjax-box">
+            <header class="blog-header">
+                <a href="http://justfortest.cc" class="blog-header-mobile-title">背着键盘去流浪</a>
+                <a href="javascript:;" class="blog-header-navbar-btn"><i class="fa fa-bars"></i></a>
+                <nav class="blog-header-navbar blog-header-fixed">
+                    <ul class="blog-navbar-links">
+                        
+                          <li class="blog-nav-item"><a href="/" class="transition">首页</a></li>
+                        
+                          <li class="blog-nav-item"><a href="/about/" class="transition">关于</a></li>
+                        
+                        <div class="blog-navbar-right">
+                            <form action="">
+                                <div class="input-group">
+                                    <input type="text" class="blog-header-search" placeholder="search...">
+                                    <buttn type="submit" class="blog-header-search-btn"><i class="fa fa-search"></i></buttn>
+                                </div>
+                            </form>
+                        </div>
+                    </ul>
+                </nav>
+            </header>
+                
+<header class="blog-post-page-title">
+    <h4>crawlergo 动态爬虫 源码学习</h4>
+    <time datetime="2021-10-07T05:50:00.000Z"><i class="fa fa-clock-o"></i>2021-10-07</time>
+    
+    
+    
+    
+	
+    
+</header>
+<div class="blog-main-post blog-post-page-box">
+    <article class="blog-post-block blog-post-page-content">
+        <section>
+            
+                <h1 id="crawlergo-动态爬虫源码学习"><a href="#crawlergo-动态爬虫源码学习" class="headerlink" title="crawlergo 动态爬虫源码学习"></a>crawlergo 动态爬虫源码学习</h1><h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#_1">调研</a></li>
+<li><a href="#crawlergo">Crawlergo</a></li>
+<li><a href="#_2">配置文件</a></li>
+<li><a href="#url">URL过滤方式</a><ul>
+<li><a href="#simple">simple</a></li>
+<li><a href="#smart">smart</a></li>
+<li><a href="#_3">基于网页结构去重</a></li>
+</ul>
+</li>
+<li><a href="#url_1">URL收集</a><ul>
+<li><a href="#robots">robots</a></li>
+<li><a href="#dir-fuzz">DIR FUZZ</a></li>
+<li><a href="#url_2">爬虫时的url收集</a></li>
+</ul>
+</li>
+<li><a href="#hook">对浏览器环境的hook</a><ul>
+<li><a href="#go">调用go函数</a></li>
+<li><a href="#bypass-headless-detect">Bypass headless detect</a></li>
+<li><a href="#url_3">记录url以及对前端框架的适配</a></li>
+<li><a href="#hook-settimeoutsetinterval">hook setTimeout&#x2F;SetInterval</a></li>
+<li><a href="#hook-ajax">hook ajax</a></li>
+<li><a href="#_4">锁定表单重置</a></li>
+<li><a href="#hook_1">事件Hook</a></li>
+</ul>
+</li>
+<li><a href="#_5">表单填充,事件触发</a><ul>
+<li><a href="#_6">表单填充</a></li>
+<li><a href="#input">input处理</a></li>
+<li><a href="#multiselect">multiSelect</a></li>
+<li><a href="#textarea">TextArea</a></li>
+<li><a href="#_7">自动化提交表单</a></li>
+<li><a href="#_8">事件触发</a></li>
+</ul>
+</li>
+<li><a href="#_9">窗口阻塞处理</a></li>
+<li><a href="#end">End</a></li>
+<li><a href="#_10">参考</a></li>
+</ul>
+<p><strong>作者：w8ay<br>原文链接：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/votEOvJafPjCka7gIB8DEA">https://mp.weixin.qq.com/s/votEOvJafPjCka7gIB8DEA</a></strong></p>
+<blockquote>
+<p>crawlergo是一个使用<code>chrome headless</code>模式进行URL收集的浏览器爬虫。它对整个网页的关键位置与DOM渲染阶段进行HOOK，自动进行表单填充并提交，配合智能的JS事件触发，尽可能的收集网站暴露出的入口。内置URL去重模块，过滤掉了大量伪静态URL，对于大型网站仍保持较快的解析与抓取速度，最后得到高质量的请求结果集合。</p>
+<p>crawlergo 目前支持以下特性：</p>
+<p>* 原生浏览器环境，协程池调度任务</p>
+<p>* 表单智能填充、自动化提交</p>
+<p>* 完整DOM事件收集，自动化触发</p>
+<p>* 智能URL去重，去掉大部分的重复请求</p>
+<p>* 全面分析收集，包括javascript文件内容、页面注释、robots.txt文件和常见路径Fuzz</p>
+<p>* 支持Host绑定，自动添加Referer</p>
+<p>* 支持请求代理，支持爬虫结果主动推送</p>
+</blockquote>
+<p>Github: <a target="_blank" rel="noopener" href="https://github.com/Qianlitp/crawlergo">https://github.com/Qianlitp/crawlergo</a></p>
+<p>作者开源了源码，我是很兴奋的，以前也有写一个的想法，但是开源的动态爬虫不多，看了其中几个。</p>
+<h2 id="调研"><a href="#调研" class="headerlink" title="调研"></a>调研</h2><p><a target="_blank" rel="noopener" href="https://github.com/fcavallarin/htcap">https://github.com/fcavallarin/htcap</a></p>
+<ul>
+<li><p>递归dom搜索引擎</p>
+</li>
+<li><p>发现ajax&#x2F;fetch&#x2F;jsonp&#x2F;websocket请求</p>
+</li>
+<li><p>支持cookie，代理，ua，http auth</p>
+</li>
+<li><p>基于文本相似度的页面重复数据删除引擎</p>
+</li>
+<li><p>根据文本长度 &lt;256</p>
+<ul>
+<li>simhash</li>
+</ul>
+</li>
+<li><p>else</p>
+<ul>
+<li>ShinglePrint</li>
+</ul>
+</li>
+<li><p>主要代码是python调用puppeteer，但是核心逻辑在js里</p>
+</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://github.com/go-rod/rod">https://github.com/go-rod/rod</a></p>
+<ul>
+<li>一个操作chrome headless的go库</li>
+<li>它比官方提供的chrome操作库更容易使用</li>
+<li>有效解决了chrome残留僵尸进程的问题</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://github.com/lc/gau">https://github.com/lc/gau</a></p>
+<ul>
+<li>通过一些通用接口获取url信息</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://github.com/jaeles-project/gospider">https://github.com/jaeles-project/gospider</a></p>
+<ul>
+<li>Web静态爬虫，也提供了一些方法获取更多URL</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://github.com/chaitin/rad1.rad">https://github.com/chaitin/rad1.rad</a></p>
+<p>1.虽然没有开源，但是它里面使用yaml进行的配置选项很多，通过配置选项可以大致知道它的一些特性。<br>2.可以手动登陆<br>3.启用图片<br>4.显示对爬取url的一些限制</p>
+<p>1.不允许的文件后缀<br>2.不允许的url关键字<br>3.不允许的域名<br>4.不允许的url</p>
+<p>设置下个页面最大点击和事件触发</p>
+<h2 id="Crawlergo"><a href="#Crawlergo" class="headerlink" title="Crawlergo"></a>Crawlergo</h2><p>之前也想过写一个动态爬虫来对接扫描器，但是动态爬虫有很多细节都需要打磨，一直没时间做，现在有现成的源码参考能省下不少事。</p>
+<p>主要看几个点</p>
+<ul>
+<li>对浏览器 JavaScript环境的hoook</li>
+<li>dom的触发，表单填充</li>
+<li>url如何去重</li>
+<li>url的收集</li>
+</ul>
+<p>目录结构</p>
+<pre><code>├─cmd
+│  └─crawlergo # 程序主入口
+├─examples
+├─imgs
+└─pkg
+    ├─config  # 一些配置相关
+    ├─engine  # chrome相关程序
+    ├─filter  # 去重相关
+    ├─js      # 一些注入的js
+    ├─logger  # 日志
+    ├─model   # url和请求相关的库
+    └─tools   # 一些通用类库
+        └─requests
+</code></pre>
+<p>根据源码的调用堆栈做了一个程序启动流程图</p>
+<p><img src="https://images.seebug.org/content/images/2021/09/26/1632625460000-1xxnxs.png-w331s" alt="图片"></p>
+<h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><p><code>pkg/config/config.go</code>定义了一些默认的配置文件</p>
+<pre><code>const (
+    DefaultUA               = &quot;Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.0 Safari/537.36&quot;
+    MaxTabsCount            = 10
+    TabRunTimeout           = 20 * time.Second
+    DefaultInputText        = &quot;Crawlergo&quot; // 默认输入的文字
+    FormInputKeyword        = &quot;Crawlergo&quot; // form输入的文字，但是代码中没有引用这个变量的
+    SuspectURLRegex         = `(?:&quot;|&#39;)(((?:[a-zA-Z]&#123;1,10&#125;://|//)[^&quot;&#39;/]&#123;1,&#125;\.[a-zA-Z]&#123;2,&#125;[^&quot;&#39;]&#123;0,&#125;)|((?:/|\.\./|\./)[^&quot;&#39;&gt;&lt;,;|*()(%%$^/\\\[\]][^&quot;&#39;&gt;&lt;,;|()]&#123;1,&#125;)|([a-zA-Z0-9_\-/]&#123;1,&#125;/[a-zA-Z0-9_\-/]&#123;1,&#125;\.(?:[a-zA-Z]&#123;1,4&#125;|action)(?:[\?|#][^&quot;|&#39;]&#123;0,&#125;|))|([a-zA-Z0-9_\-/]&#123;1,&#125;/[a-zA-Z0-9_\-/]&#123;3,&#125;(?:[\?|#][^&quot;|&#39;]&#123;0,&#125;|))|([a-zA-Z0-9_\-]&#123;1,&#125;\.(?:php|asp|aspx|jsp|json|action|html|js|txt|xml)(?:[\?|#][^&quot;|&#39;]&#123;0,&#125;|)))(?:&quot;|&#39;)` // url获取正则
+    URLRegex                = `((https?|ftp|file):)?//[-A-Za-z0-9+&amp;@#/%?=~_|!:,.;]+[-A-Za-z0-9+&amp;@#/%=~_|]` // url获取正则
+    AttrURLRegex            = ``
+    DomContentLoadedTimeout = 5 * time.Second
+    EventTriggerInterval    = 100 * time.Millisecond // 单位毫秒
+    BeforeExitDelay         = 1 * time.Second
+    DefaultEventTriggerMode = EventTriggerAsync
+    MaxCrawlCount           = 200
+)
+
+// 请求的来源,记录了每个url的来源，可以根据这些关键词定位到相关的获取代码
+const (
+    FromTarget      = &quot;Target&quot;     //初始输入的目标
+    FromNavigation  = &quot;Navigation&quot; //页面导航请求
+    FromXHR         = &quot;XHR&quot;        //ajax异步请求
+    FromDOM         = &quot;DOM&quot;        //dom解析出来的请求
+    FromJSFile      = &quot;JavaScript&quot; //JS脚本中解析
+    FromFuzz        = &quot;PathFuzz&quot;   //初始path fuzz
+    FromRobots      = &quot;robots.txt&quot; //robots.txt
+    FromComment     = &quot;Comment&quot;    //页面中的注释
+    FromWebSocket   = &quot;WebSocket&quot;
+    FromEventSource = &quot;EventSource&quot;
+    FromFetch       = &quot;Fetch&quot;
+    FromHistoryAPI  = &quot;HistoryAPI&quot;
+    FromOpenWindow  = &quot;OpenWindow&quot;
+    FromHashChange  = &quot;HashChange&quot;
+    FromStaticRes   = &quot;StaticResource&quot;
+    FromStaticRegex = &quot;StaticRegex&quot;
+)
+
+// 静态文件后缀，这些后缀的文件全部阻断读取
+var StaticSuffix = []string&#123;
+    &quot;png&quot;, &quot;gif&quot;, &quot;jpg&quot;, &quot;mp4&quot;, &quot;mp3&quot;, &quot;mng&quot;, &quot;pct&quot;, &quot;bmp&quot;, &quot;jpeg&quot;, &quot;pst&quot;, &quot;psp&quot;, &quot;ttf&quot;,
+    &quot;tif&quot;, &quot;tiff&quot;, &quot;ai&quot;, &quot;drw&quot;, &quot;wma&quot;, &quot;ogg&quot;, &quot;wav&quot;, &quot;ra&quot;, &quot;aac&quot;, &quot;mid&quot;, &quot;au&quot;, &quot;aiff&quot;,
+    &quot;dxf&quot;, &quot;eps&quot;, &quot;ps&quot;, &quot;svg&quot;, &quot;3gp&quot;, &quot;asf&quot;, &quot;asx&quot;, &quot;avi&quot;, &quot;mov&quot;, &quot;mpg&quot;, &quot;qt&quot;, &quot;rm&quot;,
+    &quot;wmv&quot;, &quot;m4a&quot;, &quot;bin&quot;, &quot;xls&quot;, &quot;xlsx&quot;, &quot;ppt&quot;, &quot;pptx&quot;, &quot;doc&quot;, &quot;docx&quot;, &quot;odt&quot;, &quot;ods&quot;, &quot;odg&quot;,
+    &quot;odp&quot;, &quot;exe&quot;, &quot;zip&quot;, &quot;rar&quot;, &quot;tar&quot;, &quot;gz&quot;, &quot;iso&quot;, &quot;rss&quot;, &quot;pdf&quot;, &quot;txt&quot;, &quot;dll&quot;, &quot;ico&quot;,
+    &quot;gz2&quot;, &quot;apk&quot;, &quot;crt&quot;, &quot;woff&quot;, &quot;map&quot;, &quot;woff2&quot;, &quot;webp&quot;, &quot;less&quot;, &quot;dmg&quot;, &quot;bz2&quot;, &quot;otf&quot;, &quot;swf&quot;,
+    &quot;flv&quot;, &quot;mpeg&quot;, &quot;dat&quot;, &quot;xsl&quot;, &quot;csv&quot;, &quot;cab&quot;, &quot;exif&quot;, &quot;wps&quot;, &quot;m4v&quot;, &quot;rmvb&quot;,
+&#125;
+
+// 动态文件的后缀，过滤器用于过滤伪静态用
+var ScriptSuffix = []string&#123;
+    &quot;php&quot;, &quot;asp&quot;, &quot;jsp&quot;, &quot;asa&quot;,
+&#125;
+
+// 默认不爬的url关键词
+var DefaultIgnoreKeywords = []string&#123;&quot;logout&quot;, &quot;quit&quot;, &quot;exit&quot;&#125;
+
+// 填充表单相关，这些是模糊匹配，匹配到了则使用对应的规则
+var AllowedFormName = []string&#123;&quot;default&quot;, &quot;mail&quot;, &quot;code&quot;, &quot;phone&quot;, &quot;username&quot;, &quot;password&quot;, &quot;qq&quot;, &quot;id_card&quot;, &quot;url&quot;, &quot;date&quot;, &quot;number&quot;&#125;
+
+var InputTextMap = map[string]map[string]interface&#123;&#125;&#123;
+    &quot;mail&quot;: &#123;
+        &quot;keyword&quot;: []string&#123;&quot;mail&quot;&#125;,
+        &quot;value&quot;:   &quot;crawlergo@gmail.com&quot;,
+    &#125;,
+    &quot;code&quot;: &#123;
+        &quot;keyword&quot;: []string&#123;&quot;yanzhengma&quot;, &quot;code&quot;, &quot;ver&quot;, &quot;captcha&quot;&#125;,
+        &quot;value&quot;:   &quot;123a&quot;,
+    &#125;,
+    &quot;phone&quot;: &#123;
+        &quot;keyword&quot;: []string&#123;&quot;phone&quot;, &quot;number&quot;, &quot;tel&quot;, &quot;shouji&quot;&#125;,
+        &quot;value&quot;:   &quot;18812345678&quot;,
+    &#125;,
+    &quot;username&quot;: &#123;
+        &quot;keyword&quot;: []string&#123;&quot;name&quot;, &quot;user&quot;, &quot;id&quot;, &quot;login&quot;, &quot;account&quot;&#125;,
+        &quot;value&quot;:   &quot;crawlergo@gmail.com&quot;,
+    &#125;,
+    &quot;password&quot;: &#123;
+        &quot;keyword&quot;: []string&#123;&quot;pass&quot;, &quot;pwd&quot;&#125;,
+        &quot;value&quot;:   &quot;Crawlergo6.&quot;,
+    &#125;,
+    &quot;qq&quot;: &#123;
+        &quot;keyword&quot;: []string&#123;&quot;qq&quot;, &quot;wechat&quot;, &quot;tencent&quot;, &quot;weixin&quot;&#125;,
+        &quot;value&quot;:   &quot;123456789&quot;,
+    &#125;,
+    &quot;IDCard&quot;: &#123;
+        &quot;keyword&quot;: []string&#123;&quot;card&quot;, &quot;shenfen&quot;&#125;,
+        &quot;value&quot;:   &quot;511702197409284963&quot;,
+    &#125;,
+    &quot;url&quot;: &#123;
+        &quot;keyword&quot;: []string&#123;&quot;url&quot;, &quot;site&quot;, &quot;web&quot;, &quot;blog&quot;, &quot;link&quot;&#125;,
+        &quot;value&quot;:   &quot;https://crawlergo.nice.cn/&quot;,
+    &#125;,
+    &quot;date&quot;: &#123;
+        &quot;keyword&quot;: []string&#123;&quot;date&quot;, &quot;time&quot;, &quot;year&quot;, &quot;now&quot;&#125;,
+        &quot;value&quot;:   &quot;2018-01-01&quot;,
+    &#125;,
+    &quot;number&quot;: &#123;
+        &quot;keyword&quot;: []string&#123;&quot;day&quot;, &quot;age&quot;, &quot;num&quot;, &quot;count&quot;&#125;,
+        &quot;value&quot;:   &quot;10&quot;,
+    &#125;,
+&#125;
+</code></pre>
+<h2 id="URL过滤方式"><a href="#URL过滤方式" class="headerlink" title="URL过滤方式"></a>URL过滤方式</h2><p>crawlergo有两种过滤，fen<code>simple</code>和<code>smart</code>。</p>
+<h3 id="simple"><a href="#simple" class="headerlink" title="simple"></a>simple</h3><p>simple过滤方式比较简单，就是将计算请求体的method、url、postdata 结合计算md5</p>
+<p><img src="https://images.seebug.org/content/images/2021/09/26/1632625460000-2zntzn.png-w331s" alt="图片"></p>
+<p>判断是否存在</p>
+<p><img src="https://images.seebug.org/content/images/2021/09/26/1632625460000-3pgdeu.png-w331s" alt="图片"></p>
+<h3 id="smart"><a href="#smart" class="headerlink" title="smart"></a>smart</h3><p>smart过滤会对每个请求的参数name，参数value，path 进行标记,会标记成以下字段</p>
+<pre><code>const (
+    CustomValueMark    = &quot;&#123;&#123;Crawlergo&#125;&#125;&quot;
+    FixParamRepeatMark = &quot;&#123;&#123;fix_param&#125;&#125;&quot;
+    FixPathMark        = &quot;&#123;&#123;fix_path&#125;&#125;&quot;
+    TooLongMark        = &quot;&#123;&#123;long&#125;&#125;&quot;
+    NumberMark         = &quot;&#123;&#123;number&#125;&#125;&quot;
+    ChineseMark        = &quot;&#123;&#123;chinese&#125;&#125;&quot;
+    UpperMark          = &quot;&#123;&#123;upper&#125;&#125;&quot;
+    LowerMark          = &quot;&#123;&#123;lower&#125;&#125;&quot;
+    UrlEncodeMark      = &quot;&#123;&#123;urlencode&#125;&#125;&quot;
+    UnicodeMark        = &quot;&#123;&#123;unicode&#125;&#125;&quot;
+    BoolMark           = &quot;&#123;&#123;bool&#125;&#125;&quot;
+    ListMark           = &quot;&#123;&#123;list&#125;&#125;&quot;
+    TimeMark           = &quot;&#123;&#123;time&#125;&#125;&quot;
+    MixAlphaNumMark    = &quot;&#123;&#123;mix_alpha_num&#125;&#125;&quot;
+    MixSymbolMark      = &quot;&#123;&#123;mix_symbol&#125;&#125;&quot;
+    MixNumMark         = &quot;&#123;&#123;mix_num&#125;&#125;&quot;
+    NoLowerAlphaMark   = &quot;&#123;&#123;no_lower&#125;&#125;&quot;
+    MixStringMark      = &quot;&#123;&#123;mix_str&#125;&#125;&quot;
+)
+</code></pre>
+<p>例如</p>
+<pre><code>?m=home&amp;c=index&amp;a=index
+?type=202cb962ac59075b964b07152d234b70
+?id=1
+?msg=%E6%B6%88%E6%81%AF
+</code></pre>
+<p>处理结果即</p>
+<pre><code>?m=home&amp;c=index&amp;a=index
+?type=&#123;hash&#125;
+?id=&#123;int&#125;
+?msg=&#123;urlencode&#125;
+</code></pre>
+<p>会对超过阈值的结果，以及计算的唯一id进行比对，来判断是否过滤，总体来说是基于url的过滤方式。</p>
+<p>使用的正则</p>
+<pre><code>var chineseRegex = regexp.MustCompile(&quot;[\u4e00-\u9fa5]+&quot;)
+var urlencodeRegex = regexp.MustCompile(&quot;(?:%[A-Fa-f0-9]&#123;2,6&#125;)+&quot;)
+var unicodeRegex = regexp.MustCompile(`(?:\\u\w&#123;4&#125;)+`)
+var onlyAlphaRegex = regexp.MustCompile(&quot;^[a-zA-Z]+$&quot;)
+var onlyAlphaUpperRegex = regexp.MustCompile(&quot;^[A-Z]+$&quot;)
+var alphaUpperRegex = regexp.MustCompile(&quot;[A-Z]+&quot;)
+var alphaLowerRegex = regexp.MustCompile(&quot;[a-z]+&quot;)
+var replaceNumRegex = regexp.MustCompile(`[0-9]+\.[0-9]+|\d+`)
+var onlyNumberRegex = regexp.MustCompile(`^[0-9]+$`)
+var numberRegex = regexp.MustCompile(`[0-9]+`)
+var OneNumberRegex = regexp.MustCompile(`[0-9]`)
+var numSymbolRegex = regexp.MustCompile(`\.|_|-`)
+var timeSymbolRegex = regexp.MustCompile(`-|:|\s`)
+var onlyAlphaNumRegex = regexp.MustCompile(`^[0-9a-zA-Z]+$`)
+var markedStringRegex = regexp.MustCompile(`^&#123;&#123;.+&#125;&#125;$`)
+var htmlReplaceRegex = regexp.MustCompile(`\.shtml|\.html|\.htm`)
+</code></pre>
+<p>对路径的处理</p>
+<pre><code>/**
+标记路径
+*/
+func (s *SmartFilter) MarkPath(path string) string &#123;
+    pathParts := strings.Split(path, &quot;/&quot;)
+    for index, part := range pathParts &#123;
+        if len(part) &gt;= 32 &#123;
+            pathParts[index] = TooLongMark
+        &#125; else if onlyNumberRegex.MatchString(numSymbolRegex.ReplaceAllString(part, &quot;&quot;)) &#123;
+            pathParts[index] = NumberMark
+        &#125; else if strings.HasSuffix(part, &quot;.html&quot;) || strings.HasSuffix(part, &quot;.htm&quot;) || strings.HasSuffix(part, &quot;.shtml&quot;) &#123;
+            part = htmlReplaceRegex.ReplaceAllString(part, &quot;&quot;)
+            // 大写、小写、数字混合
+            if numberRegex.MatchString(part) &amp;&amp; alphaUpperRegex.MatchString(part) &amp;&amp; alphaLowerRegex.MatchString(part) &#123;
+                pathParts[index] = MixAlphaNumMark
+                // 纯数字
+            &#125; else if b := numSymbolRegex.ReplaceAllString(part, &quot;&quot;); onlyNumberRegex.MatchString(b) &#123;
+                pathParts[index] = NumberMark
+            &#125;
+            // 含有特殊符号
+        &#125; else if s.hasSpecialSymbol(part) &#123;
+            pathParts[index] = MixSymbolMark
+        &#125; else if chineseRegex.MatchString(part) &#123;
+            pathParts[index] = ChineseMark
+        &#125; else if unicodeRegex.MatchString(part) &#123;
+            pathParts[index] = UnicodeMark
+        &#125; else if onlyAlphaUpperRegex.MatchString(part) &#123;
+            pathParts[index] = UpperMark
+            // 均为数字和一些符号组成
+        &#125; else if b := numSymbolRegex.ReplaceAllString(part, &quot;&quot;); onlyNumberRegex.MatchString(b) &#123;
+            pathParts[index] = NumberMark
+            // 数字出现的次数超过3，视为伪静态path
+        &#125; else if b := OneNumberRegex.ReplaceAllString(part, &quot;0&quot;); strings.Count(b, &quot;0&quot;) &gt; 3 &#123;
+            pathParts[index] = MixNumMark
+        &#125;
+    &#125;
+    newPath := strings.Join(pathParts, &quot;/&quot;)
+    return newPath
+&#125;
+</code></pre>
+<h3 id="基于网页结构去重"><a href="#基于网页结构去重" class="headerlink" title="基于网页结构去重"></a>基于网页结构去重</h3><p>作者原帖中的基于网页结构去重写的非常精彩 <a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/178339#h2-17">https://www.anquanke.com/post/id/178339#h2-17</a></p>
+<p>参考的论文下载: <a target="_blank" rel="noopener" href="https://patents.google.com/patent/CN101694668B/zh">https://patents.google.com/patent/CN101694668B/zh</a></p>
+<p>作者的将网页特征向量抽离出来，索引存储，用来判断大量网页的相似度，非常惊艳，未来用到资产收集系统或者网络空间引擎上也都是非常不错的选择。</p>
+<h2 id="URL收集"><a href="#URL收集" class="headerlink" title="URL收集"></a>URL收集</h2><h3 id="robots"><a href="#robots" class="headerlink" title="robots"></a>robots</h3><p>在爬虫之前，会先请求robots.txt，解析出所有链接，加入到待爬取页面。</p>
+<p>源码中使用了一个正则来匹配</p>
+<pre><code>var urlFindRegex = regexp.MustCompile(`(?:Disallow|Allow):.*?(/.+)`)
+</code></pre>
+<p>看了下robots规范:<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/robots%E5%8D%8F%E8%AE%AE/2483797">https://baike.baidu.com/item/robots%E5%8D%8F%E8%AE%AE/2483797</a> ，应该还可以再优化一下，来处理一些表达式。</p>
+<p><img src="https://images.seebug.org/content/images/2021/09/26/1632625461000-4lcfgb.png-w331s" alt="图片"></p>
+<h3 id="DIR-FUZZ"><a href="#DIR-FUZZ" class="headerlink" title="DIR FUZZ"></a>DIR FUZZ</h3><p>在爬虫之前，如果没有指定dir字典的话，默认会使用内置的字典</p>
+<pre><code>[&#39;11&#39;, &#39;123&#39;, &#39;2017&#39;, &#39;2018&#39;, &#39;message&#39;, &#39;mis&#39;, &#39;model&#39;, &#39;abstract&#39;, &#39;account&#39;, &#39;act&#39;, &#39;action&#39;, &#39;activity&#39;, &#39;ad&#39;, &#39;address&#39;, &#39;ajax&#39;, &#39;alarm&#39;, &#39;api&#39;, &#39;app&#39;, &#39;ar&#39;, &#39;attachment&#39;, &#39;auth&#39;, &#39;authority&#39;, &#39;award&#39;, &#39;back&#39;, &#39;backup&#39;, &#39;bak&#39;, &#39;base&#39;, &#39;bbs&#39;, &#39;bbs1&#39;, &#39;cms&#39;, &#39;bd&#39;, &#39;gallery&#39;, &#39;game&#39;, &#39;gift&#39;, &#39;gold&#39;, &#39;bg&#39;, &#39;bin&#39;, &#39;blacklist&#39;, &#39;blog&#39;, &#39;bootstrap&#39;, &#39;brand&#39;, &#39;build&#39;, &#39;cache&#39;, &#39;caches&#39;, &#39;caching&#39;, &#39;cacti&#39;, &#39;cake&#39;, &#39;captcha&#39;, &#39;category&#39;, &#39;cdn&#39;, &#39;ch&#39;, &#39;check&#39;, &#39;city&#39;, &#39;class&#39;, &#39;classes&#39;, &#39;classic&#39;, &#39;client&#39;, &#39;cluster&#39;, &#39;collection&#39;, &#39;comment&#39;, &#39;commit&#39;, &#39;common&#39;, &#39;commons&#39;, &#39;components&#39;, &#39;conf&#39;, &#39;config&#39;, &#39;mysite&#39;, &#39;confs&#39;, &#39;console&#39;, &#39;consumer&#39;, &#39;content&#39;, &#39;control&#39;, &#39;controllers&#39;, &#39;core&#39;, &#39;crontab&#39;, &#39;crud&#39;, &#39;css&#39;, &#39;daily&#39;, &#39;dashboard&#39;, &#39;data&#39;, &#39;database&#39;, &#39;db&#39;, &#39;default&#39;, &#39;demo&#39;, &#39;dev&#39;, &#39;doc&#39;, &#39;download&#39;, &#39;duty&#39;, &#39;es&#39;, &#39;eva&#39;, &#39;examples&#39;, &#39;excel&#39;, &#39;export&#39;, &#39;ext&#39;, &#39;fe&#39;, &#39;feature&#39;, &#39;file&#39;, &#39;files&#39;, &#39;finance&#39;, &#39;flashchart&#39;, &#39;follow&#39;, &#39;forum&#39;, &#39;frame&#39;, &#39;framework&#39;, &#39;ft&#39;, &#39;group&#39;, &#39;gss&#39;, &#39;hello&#39;, &#39;helper&#39;, &#39;helpers&#39;, &#39;history&#39;, &#39;home&#39;, &#39;hr&#39;, &#39;htdocs&#39;, &#39;html&#39;, &#39;hunter&#39;, &#39;image&#39;, &#39;img11&#39;, &#39;import&#39;, &#39;improve&#39;, &#39;inc&#39;, &#39;include&#39;, &#39;includes&#39;, &#39;index&#39;, &#39;info&#39;, &#39;install&#39;, &#39;interface&#39;, &#39;item&#39;, &#39;jobconsume&#39;, &#39;jobs&#39;, &#39;json&#39;, &#39;kindeditor&#39;, &#39;l&#39;, &#39;languages&#39;, &#39;lib&#39;, &#39;libraries&#39;, &#39;libs&#39;, &#39;link&#39;, &#39;lite&#39;, &#39;local&#39;, &#39;log&#39;, &#39;login&#39;, &#39;logs&#39;, &#39;mail&#39;, &#39;main&#39;, &#39;maintenance&#39;, &#39;manage&#39;, &#39;manager&#39;, &#39;manufacturer&#39;, &#39;menus&#39;, &#39;models&#39;, &#39;modules&#39;, &#39;monitor&#39;, &#39;movie&#39;, &#39;mysql&#39;, &#39;n&#39;, &#39;nav&#39;, &#39;network&#39;, &#39;news&#39;, &#39;notice&#39;, &#39;nw&#39;, &#39;oauth&#39;, &#39;other&#39;, &#39;page&#39;, &#39;pages&#39;, &#39;passport&#39;, &#39;pay&#39;, &#39;pcheck&#39;, &#39;people&#39;, &#39;person&#39;, &#39;php&#39;, &#39;phprpc&#39;, &#39;phptest&#39;, &#39;picture&#39;, &#39;pl&#39;, &#39;platform&#39;, &#39;pm&#39;, &#39;portal&#39;, &#39;post&#39;, &#39;product&#39;, &#39;project&#39;, &#39;protected&#39;, &#39;proxy&#39;, &#39;ps&#39;, &#39;public&#39;, &#39;qq&#39;, &#39;question&#39;, &#39;quote&#39;, &#39;redirect&#39;, &#39;redisclient&#39;, &#39;report&#39;, &#39;resource&#39;, &#39;resources&#39;, &#39;s&#39;, &#39;save&#39;, &#39;schedule&#39;, &#39;schema&#39;, &#39;script&#39;, &#39;scripts&#39;, &#39;search&#39;, &#39;security&#39;, &#39;server&#39;, &#39;service&#39;, &#39;shell&#39;, &#39;show&#39;, &#39;simple&#39;, &#39;site&#39;, &#39;sites&#39;, &#39;skin&#39;, &#39;sms&#39;, &#39;soap&#39;, &#39;sola&#39;, &#39;sort&#39;, &#39;spider&#39;, &#39;sql&#39;, &#39;stat&#39;, &#39;static&#39;, &#39;statistics&#39;, &#39;stats&#39;, &#39;submit&#39;, &#39;subways&#39;, &#39;survey&#39;, &#39;sv&#39;, &#39;syslog&#39;, &#39;system&#39;, &#39;tag&#39;, &#39;task&#39;, &#39;tasks&#39;, &#39;tcpdf&#39;, &#39;template&#39;, &#39;templates&#39;, &#39;test&#39;, &#39;tests&#39;, &#39;ticket&#39;, &#39;tmp&#39;, &#39;token&#39;, &#39;tool&#39;, &#39;tools&#39;, &#39;top&#39;, &#39;tpl&#39;, &#39;txt&#39;, &#39;upload&#39;, &#39;uploadify&#39;, &#39;uploads&#39;, &#39;url&#39;, &#39;user&#39;, &#39;util&#39;, &#39;v1&#39;, &#39;v2&#39;, &#39;vendor&#39;, &#39;view&#39;, &#39;views&#39;, &#39;web&#39;, &#39;weixin&#39;, &#39;widgets&#39;, &#39;wm&#39;, &#39;wordpress&#39;, &#39;workspace&#39;, &#39;ws&#39;, &#39;www&#39;, &#39;www2&#39;, &#39;wwwroot&#39;, &#39;zone&#39;, &#39;admin&#39;, &#39;admin_bak&#39;, &#39;mobile&#39;, &#39;m&#39;, &#39;js&#39;]
+</code></pre>
+<p>根据状态码判断</p>
+<p><img src="https://images.seebug.org/content/images/2021/09/26/1632625461000-5qyhjl.png-w331s" alt="图片"></p>
+<h3 id="爬虫时的url收集"><a href="#爬虫时的url收集" class="headerlink" title="爬虫时的url收集"></a>爬虫时的url收集</h3><ul>
+<li><p>解析流量中的url</p>
+</li>
+<li><p>获取xmr类型的请求</p>
+</li>
+<li><p>正则解析js、html、json中url</p>
+</li>
+<li><p>收集当前页面上的url信息</p>
+<p>“src”, “href”, “data-url”, “data-href”<br>object[data]<br>注释中的url</p>
+</li>
+</ul>
+<p><img src="https://images.seebug.org/content/images/2021/09/26/1632625461000-6lnbgq.png-w331s" alt="图片"></p>
+<h2 id="对浏览器环境的hook"><a href="#对浏览器环境的hook" class="headerlink" title="对浏览器环境的hook"></a>对浏览器环境的hook</h2><p>在chrome的tab初始化时，会执行一段js代码，hook部分函数和事件来控制js的运行环境。</p>
+<p>同时定义了一个js全局函数<code>addLink</code>、<code>Test</code>，通过这个函数可以与go进行交互。</p>
+<p><img src="https://images.seebug.org/content/images/2021/09/26/1632625461000-7hokfs.png-w331s" alt="图片"></p>
+<h3 id="调用go函数"><a href="#调用go函数" class="headerlink" title="调用go函数"></a>调用go函数</h3><p>js初始化时对这个函数重新包装</p>
+<pre><code>const binding = window[&quot;addLink&quot;];
+window[&quot;addLink&quot;] = async(...args) =&gt; &#123;
+    const me = window[&quot;addLink&quot;];
+    let callbacks = me[&#39;callbacks&#39;];
+    if (!callbacks) &#123;
+        callbacks = new Map();
+        me[&#39;callbacks&#39;] = callbacks;
+    &#125;
+    const seq = (me[&#39;lastSeq&#39;] || 0) + 1;
+    me[&#39;lastSeq&#39;] = seq;
+    const promise = new Promise(fulfill =&gt; callbacks.set(seq, fulfill));
+    binding(JSON.stringify(&#123;name: &quot;addLink&quot;, seq, args&#125;));
+    return promise;
+&#125;;
+
+const bindingTest = window[&quot;Test&quot;];
+window[&quot;Test&quot;] = async(...args) =&gt; &#123;
+    const me = window[&quot;Test&quot;];
+    let callbacks = me[&#39;callbacks&#39;];
+    if (!callbacks) &#123;
+        callbacks = new Map();
+        me[&#39;callbacks&#39;] = callbacks;
+    &#125;
+    const seq = (me[&#39;lastSeq&#39;] || 0) + 1;
+    me[&#39;lastSeq&#39;] = seq;
+    const promise = new Promise(fulfill =&gt; callbacks.set(seq, fulfill));
+    binding(JSON.stringify(&#123;name: &quot;Test&quot;, seq, args&#125;));
+    return promise;
+&#125;;
+</code></pre>
+<p>go处理逻辑</p>
+<p><img src="https://images.seebug.org/content/images/2021/09/26/1632625461000-8mrawy.png-w331s" alt="图片"></p>
+<p>执行完go函数后会再执行一段js</p>
+<pre><code>const DeliverResultJS = `
+(function deliverResult(name, seq, result) &#123;
+    window[name][&#39;callbacks&#39;].get(seq)(result);
+    window[name][&#39;callbacks&#39;].delete(seq);
+&#125;)(&quot;%s&quot;, %v, &quot;%s&quot;)
+</code></pre>
+<p>但是没看懂使用<code>promise</code>后回调调用的意义是什么。。</p>
+<h3 id="Bypass-headless-detect"><a href="#Bypass-headless-detect" class="headerlink" title="Bypass headless detect"></a>Bypass headless detect</h3><pre><code>// Pass the Webdriver Test.
+Object.defineProperty(navigator, &#39;webdriver&#39;, &#123;
+    get: () =&gt; false,
+&#125;);
+
+// Pass the Plugins Length Test.
+// Overwrite the plugins property to use a custom getter.
+Object.defineProperty(navigator, &#39;plugins&#39;, &#123;
+    // This just needs to have length &gt; 0 for the current test,
+    // but we could mock the plugins too if necessary.
+    get: () =&gt; [1, 2, 3, 4, 5],
+&#125;);
+
+// Pass the Chrome Test.
+// We can mock this in as much depth as we need for the test.
+window.chrome = &#123;
+    runtime: &#123;&#125;,
+&#125;;
+
+// Pass the Permissions Test.
+const originalQuery = window.navigator.permissions.query;
+window.navigator.permissions.query = (parameters) =&gt; (
+    parameters.name === &#39;notifications&#39; ?
+    Promise.resolve(&#123; state: Notification.permission &#125;) :
+    originalQuery(parameters)
+);
+
+//Pass the Permissions Test. navigator.userAgent
+Object.defineProperty(navigator, &#39;userAgent&#39;, &#123;
+    get: () =&gt; &quot;Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.0 Safari/537.36&quot;,
+&#125;);
+
+// 修改浏览器对象的属性
+Object.defineProperty(navigator, &#39;platform&#39;, &#123;
+    get: function () &#123; return &#39;win32&#39;; &#125;
+&#125;);
+
+Object.defineProperty(navigator, &#39;language&#39;, &#123;
+    get: function () &#123; return &#39;zh-CN&#39;; &#125;
+&#125;);
+
+Object.defineProperty(navigator, &#39;languages&#39;, &#123;
+    get: function () &#123; return [&quot;zh-CN&quot;, &quot;zh&quot;]; &#125;
+&#125;);
+</code></pre>
+<h3 id="记录url以及对前端框架的适配"><a href="#记录url以及对前端框架的适配" class="headerlink" title="记录url以及对前端框架的适配"></a>记录url以及对前端框架的适配</h3><pre><code>// history api hook 许多前端框架都采用此API进行页面路由，记录url并取消操作
+window.history.pushState = function(a, b, c) &#123; 
+    window.addLink(c, &quot;HistoryAPI&quot;);
+&#125;
+window.history.replaceState = function(a, b, c) &#123; 
+    window.addLink(c, &quot;HistoryAPI&quot;);
+&#125;
+Object.defineProperty(window.history,&quot;pushState&quot;,&#123;&quot;writable&quot;: false, &quot;configurable&quot;: false&#125;);
+Object.defineProperty(window.history,&quot;replaceState&quot;,&#123;&quot;writable&quot;: false, &quot;configurable&quot;: false&#125;);
+// 监听hash改变 Vue等框架默认使用hash部分进行前端页面路由
+window.addEventListener(&quot;hashchange&quot;, function() &#123;
+    window.addLink(document.location.href, &quot;HashChange&quot;);
+&#125;);
+
+// 监听窗口的打开和关闭，记录新窗口打开的url，并取消实际操作
+// hook window.open 
+window.open = function (url) &#123;
+    console.log(&quot;trying to open window.&quot;);
+    window.addLink(url, &quot;OpenWindow&quot;);
+&#125;
+Object.defineProperty(window,&quot;open&quot;,&#123;&quot;writable&quot;: false, &quot;configurable&quot;: false&#125;);
+
+// hook window close
+window.close = function() &#123;console.log(&quot;trying to close page.&quot;);&#125;;
+Object.defineProperty(window,&quot;close&quot;,&#123;&quot;writable&quot;: false, &quot;configurable&quot;: false&#125;);
+
+// hook window.WebSocket 、window.EventSource 、 window.fetch 等函数
+var oldWebSocket = window.WebSocket;
+window.WebSocket = function(url, arg) &#123;
+    window.addLink(url, &quot;WebSocket&quot;);
+    return new oldWebSocket(url, arg);
+&#125;
+
+var oldEventSource = window.EventSource;
+window.EventSource = function(url) &#123;
+    window.addLink(url, &quot;EventSource&quot;);
+    return new oldEventSource(url);
+&#125;
+
+var oldFetch = window.fetch;
+window.fetch = function(url) &#123;
+    window.addLink(url, &quot;Fetch&quot;);
+    return oldFetch(url);
+&#125;
+</code></pre>
+<h3 id="hook-setTimeout-x2F-SetInterval"><a href="#hook-setTimeout-x2F-SetInterval" class="headerlink" title="hook setTimeout&#x2F;SetInterval"></a>hook setTimeout&#x2F;SetInterval</h3><pre><code>// hook setTimeout
+//window.__originalSetTimeout = window.setTimeout;
+//window.setTimeout = function() &#123;
+//    arguments[1] = 0;
+//    return window.__originalSetTimeout.apply(this, arguments);
+//&#125;;
+//Object.defineProperty(window,&quot;setTimeout&quot;,&#123;&quot;writable&quot;: false, &quot;configurable&quot;: false&#125;);
+
+// hook setInterval 时间设置为60秒 目的是减轻chrome的压力
+window.__originalSetInterval = window.setInterval;
+window.setInterval = function() &#123;
+    arguments[1] = 60000;
+    return window.__originalSetInterval.apply(this, arguments);
+&#125;;
+Object.defineProperty(window,&quot;setInterval&quot;,&#123;&quot;writable&quot;: false, &quot;configurable&quot;: false&#125;);
+</code></pre>
+<p>这个hook操作没有明白，将setInterval强制设为了60s，我想应该来个判断，大于60s时再统一设置，60s，这样爬虫效率就变得太低了。</p>
+<p>setTimeout取消了hook，毕竟只执行一次，可能不是很重要。</p>
+<h3 id="hook-ajax"><a href="#hook-ajax" class="headerlink" title="hook ajax"></a>hook ajax</h3><p>hook 原生ajax并限制最大请求数，可能是怕自动点击造成ajax爆炸</p>
+<pre><code>// 劫持原生ajax，并对每个请求设置最大请求次数
+window.ajax_req_count_sec_auto = &#123;&#125;;
+XMLHttpRequest.prototype.__originalOpen = XMLHttpRequest.prototype.open;
+XMLHttpRequest.prototype.open = function(method, url, async, user, password) &#123;
+    // hook code
+    this.url = url;
+    this.method = method;
+    let name = method + url;
+    if (!window.ajax_req_count_sec_auto.hasOwnProperty(name)) &#123;
+        window.ajax_req_count_sec_auto[name] = 1
+    &#125; else &#123;
+        window.ajax_req_count_sec_auto[name] += 1
+    &#125;
+
+    if (window.ajax_req_count_sec_auto[name] &lt;= 10) &#123;
+        return this.__originalOpen(method, url, true, user, password);
+    &#125;
+&#125;
+Object.defineProperty(XMLHttpRequest.prototype,&quot;open&quot;,&#123;&quot;writable&quot;: false, &quot;configurable&quot;: false&#125;);
+
+XMLHttpRequest.prototype.__originalSend = XMLHttpRequest.prototype.send;
+XMLHttpRequest.prototype.send = function(data) &#123;
+    // hook code
+    let name = this.method + this.url;
+    if (window.ajax_req_count_sec_auto[name] &lt;= 10) &#123;
+        return this.__originalSend(data);
+    &#125;
+&#125;
+Object.defineProperty(XMLHttpRequest.prototype,&quot;send&quot;,&#123;&quot;writable&quot;: false, &quot;configurable&quot;: false&#125;);
+
+XMLHttpRequest.prototype.__originalAbort = XMLHttpRequest.prototype.abort;
+XMLHttpRequest.prototype.abort = function() &#123;
+    // hook code
+&#125;
+Object.defineProperty(XMLHttpRequest.prototype,&quot;abort&quot;,&#123;&quot;writable&quot;: false, &quot;configurable&quot;: false&#125;);
+</code></pre>
+<h3 id="锁定表单重置"><a href="#锁定表单重置" class="headerlink" title="锁定表单重置"></a>锁定表单重置</h3><p>爬虫在处理网页时，会先填充表单，接着触发事件去提交表单，但有时会意外点击到表单的重置按钮，造成内容清空，表单提交失败。所以为了防止这种情况的发生，需要Hook表单的重置并锁定不能修改。</p>
+<pre><code>// 锁定表单重置
+HTMLFormElement.prototype.reset = function() &#123;console.log(&quot;cancel reset form&quot;)&#125;;
+Object.defineProperty(HTMLFormElement.prototype,&quot;reset&quot;,&#123;&quot;writable&quot;: false, &quot;configurable&quot;: false&#125;);
+</code></pre>
+<h3 id="事件Hook"><a href="#事件Hook" class="headerlink" title="事件Hook"></a>事件Hook</h3><p>对dom0级和dom2级事件分别hook，用一个数组设定最大触发次数，所有js调用的事件，会对每个标签设置一个<code>sec_auto_dom2_event_flag</code>属性，方便后面寻找并自动触发。</p>
+<pre><code>// hook dom2 级事件监听
+window.add_even_listener_count_sec_auto = &#123;&#125;;
+// record event func , hook addEventListener
+let old_event_handle = Element.prototype.addEventListener;
+Element.prototype.addEventListener = function(event_name, event_func, useCapture) &#123;
+    let name = &quot;&lt;&quot; + this.tagName + &quot;&gt; &quot; + this.id + this.name + this.getAttribute(&quot;class&quot;) + &quot;|&quot; + event_name;
+    // console.log(name)
+    // 对每个事件设定最大的添加次数，防止无限触发，最大次数为5
+    if (!window.add_even_listener_count_sec_auto.hasOwnProperty(name)) &#123;
+        window.add_even_listener_count_sec_auto[name] = 1;
+    &#125; else if (window.add_even_listener_count_sec_auto[name] == 5) &#123;
+        return ;
+    &#125; else &#123;
+        window.add_even_listener_count_sec_auto[name] += 1;
+    &#125;
+    if (this.hasAttribute(&quot;sec_auto_dom2_event_flag&quot;)) &#123;
+        let sec_auto_dom2_event_flag = this.getAttribute(&quot;sec_auto_dom2_event_flag&quot;);
+        this.setAttribute(&quot;sec_auto_dom2_event_flag&quot;, sec_auto_dom2_event_flag + &quot;|&quot; + event_name);
+    &#125; else &#123;
+        this.setAttribute(&quot;sec_auto_dom2_event_flag&quot;, event_name);
+    &#125;
+    old_event_handle.apply(this, arguments);
+&#125;;
+
+function dom0_listener_hook(that, event_name) &#123;
+    let name = &quot;&lt;&quot; + that.tagName + &quot;&gt; &quot; + that.id + that.name + that.getAttribute(&quot;class&quot;) + &quot;|&quot; + event_name;
+    // console.log(name);
+    // 对每个事件设定最大的添加次数，防止无限触发，最大次数为5
+    if (!window.add_even_listener_count_sec_auto.hasOwnProperty(name)) &#123;
+        window.add_even_listener_count_sec_auto[name] = 1;
+    &#125; else if (window.add_even_listener_count_sec_auto[name] == 5) &#123;
+        return ;
+    &#125; else &#123;
+        window.add_even_listener_count_sec_auto[name] += 1;
+    &#125;
+    if (that.hasAttribute(&quot;sec_auto_dom2_event_flag&quot;)) &#123;
+        let sec_auto_dom2_event_flag = that.getAttribute(&quot;sec_auto_dom2_event_flag&quot;);
+        that.setAttribute(&quot;sec_auto_dom2_event_flag&quot;, sec_auto_dom2_event_flag + &quot;|&quot; + event_name);
+    &#125; else &#123;
+        that.setAttribute(&quot;sec_auto_dom2_event_flag&quot;, event_name);
+    &#125;
+&#125;
+
+// hook dom0 级事件监听
+Object.defineProperties(HTMLElement.prototype, &#123;
+    onclick: &#123;set: function(newValue)&#123;onclick = newValue;dom0_listener_hook(this, &quot;click&quot;);&#125;&#125;,
+    onchange: &#123;set: function(newValue)&#123;onchange = newValue;dom0_listener_hook(this, &quot;change&quot;);&#125;&#125;,
+    onblur: &#123;set: function(newValue)&#123;onblur = newValue;dom0_listener_hook(this, &quot;blur&quot;);&#125;&#125;,
+    ondblclick: &#123;set: function(newValue)&#123;ondblclick = newValue;dom0_listener_hook(this, &quot;dbclick&quot;);&#125;&#125;,
+    onfocus: &#123;set: function(newValue)&#123;onfocus = newValue;dom0_listener_hook(this, &quot;focus&quot;);&#125;&#125;,
+    onkeydown: &#123;set: function(newValue)&#123;onkeydown = newValue;dom0_listener_hook(this, &quot;keydown&quot;);&#125;&#125;,
+    onkeypress: &#123;set: function(newValue)&#123;onkeypress = newValue;dom0_listener_hook(this, &quot;keypress&quot;);&#125;&#125;,
+    onkeyup: &#123;set: function(newValue)&#123;onkeyup = newValue;dom0_listener_hook(this, &quot;keyup&quot;);&#125;&#125;,
+    onload: &#123;set: function(newValue)&#123;onload = newValue;dom0_listener_hook(this, &quot;load&quot;);&#125;&#125;,
+    onmousedown: &#123;set: function(newValue)&#123;onmousedown = newValue;dom0_listener_hook(this, &quot;mousedown&quot;);&#125;&#125;,
+    onmousemove: &#123;set: function(newValue)&#123;onmousemove = newValue;dom0_listener_hook(this, &quot;mousemove&quot;);&#125;&#125;,
+    onmouseout: &#123;set: function(newValue)&#123;onmouseout = newValue;dom0_listener_hook(this, &quot;mouseout&quot;);&#125;&#125;,
+    onmouseover: &#123;set: function(newValue)&#123;onmouseover = newValue;dom0_listener_hook(this, &quot;mouseover&quot;);&#125;&#125;,
+    onmouseup: &#123;set: function(newValue)&#123;onmouseup = newValue;dom0_listener_hook(this, &quot;mouseup&quot;);&#125;&#125;,
+    onreset: &#123;set: function(newValue)&#123;onreset = newValue;dom0_listener_hook(this, &quot;reset&quot;);&#125;&#125;,
+    onresize: &#123;set: function(newValue)&#123;onresize = newValue;dom0_listener_hook(this, &quot;resize&quot;);&#125;&#125;,
+    onselect: &#123;set: function(newValue)&#123;onselect = newValue;dom0_listener_hook(this, &quot;select&quot;);&#125;&#125;,
+    onsubmit: &#123;set: function(newValue)&#123;onsubmit = newValue;dom0_listener_hook(this, &quot;submit&quot;);&#125;&#125;,
+    onunload: &#123;set: function(newValue)&#123;onunload = newValue;dom0_listener_hook(this, &quot;unload&quot;);&#125;&#125;,
+    onabort: &#123;set: function(newValue)&#123;onabort = newValue;dom0_listener_hook(this, &quot;abort&quot;);&#125;&#125;,
+    onerror: &#123;set: function(newValue)&#123;onerror = newValue;dom0_listener_hook(this, &quot;error&quot;);&#125;&#125;,
+&#125;)
+</code></pre>
+<h2 id="表单填充-事件触发"><a href="#表单填充-事件触发" class="headerlink" title="表单填充,事件触发"></a>表单填充,事件触发</h2><h3 id="表单填充"><a href="#表单填充" class="headerlink" title="表单填充"></a>表单填充</h3><p><img src="https://images.seebug.org/content/images/2021/09/26/1632625461000-9svuae.png-w331s" alt="图片"></p>
+<h3 id="input处理"><a href="#input处理" class="headerlink" title="input处理"></a>input处理</h3><pre><code>// 找出 type 为空 或者 type=text
+for _, node := range nodes &#123;
+    // 兜底超时
+    tCtxN, cancelN := context.WithTimeout(ctx, time.Second*5)
+    attrType := node.AttributeValue(&quot;type&quot;)
+    if attrType == &quot;text&quot; || attrType == &quot;&quot; &#123;
+        inputName := node.AttributeValue(&quot;id&quot;) + node.AttributeValue(&quot;class&quot;) + node.AttributeValue(&quot;name&quot;)
+        value := f.GetMatchInputText(inputName)
+        // 寻找匹配类型的值
+        var nodeIds = []cdp.NodeID&#123;node.NodeID&#125;
+        // 先使用模拟输入
+        _ = chromedp.SendKeys(nodeIds, value, chromedp.ByNodeID).Do(tCtxN)
+        // 再直接赋值JS属性
+        _ = chromedp.SetAttributeValue(nodeIds, &quot;value&quot;, value, chromedp.ByNodeID).Do(tCtxN)
+    &#125; else if attrType == &quot;email&quot; || attrType == &quot;password&quot; || attrType == &quot;tel&quot; &#123;
+        value := f.GetMatchInputText(attrType)
+        // 寻找匹配类型的值
+        var nodeIds = []cdp.NodeID&#123;node.NodeID&#125;
+        // 先使用模拟输入
+        _ = chromedp.SendKeys(nodeIds, value, chromedp.ByNodeID).Do(tCtxN)
+        // 再直接赋值JS属性
+        _ = chromedp.SetAttributeValue(nodeIds, &quot;value&quot;, value, chromedp.ByNodeID).Do(tCtxN)
+    &#125; else if attrType == &quot;radio&quot; || attrType == &quot;checkbox&quot; &#123;
+        var nodeIds = []cdp.NodeID&#123;node.NodeID&#125;
+        _ = chromedp.SetAttributeValue(nodeIds, &quot;checked&quot;, &quot;true&quot;, chromedp.ByNodeID).Do(tCtxN)
+    &#125; else if attrType == &quot;file&quot; || attrType == &quot;image&quot; &#123;
+        var nodeIds = []cdp.NodeID&#123;node.NodeID&#125;
+        wd, _ := os.Getwd()
+        filePath := wd + &quot;/upload/image.png&quot;
+        _ = chromedp.RemoveAttribute(nodeIds, &quot;accept&quot;, chromedp.ByNodeID).Do(tCtxN)
+        _ = chromedp.RemoveAttribute(nodeIds, &quot;required&quot;, chromedp.ByNodeID).Do(tCtxN)
+        // 对于一些简单的限制，可以去掉，比如找到文件上传的dom节点并删除 accept 和 required 属性：
+        _ = chromedp.SendKeys(nodeIds, filePath, chromedp.ByNodeID).Do(tCtxN)
+    &#125;
+    cancelN()
+&#125;
+</code></pre>
+<h3 id="multiSelect"><a href="#multiSelect" class="headerlink" title="multiSelect"></a>multiSelect</h3><p>css语法获取select第一个元素，设置属性即可</p>
+<pre><code>optionNodes, optionErr := f.tab.GetNodeIDs(`select option:first-child`)
+    if optionErr != nil || len(optionNodes) == 0 &#123;
+        logger.Logger.Debug(&quot;fillMultiSelect: get select option element err&quot;)
+        if optionErr != nil &#123;
+            logger.Logger.Debug(optionErr)
+        &#125;
+        return
+    &#125;
+    _ = chromedp.SetAttributeValue(optionNodes, &quot;selected&quot;, &quot;true&quot;, chromedp.ByNodeID).Do(tCtx)
+    _ = chromedp.SetJavascriptAttribute(optionNodes, &quot;selected&quot;, &quot;true&quot;, chromedp.ByNodeID).Do(tCtx)
+</code></pre>
+<h3 id="TextArea"><a href="#TextArea" class="headerlink" title="TextArea"></a>TextArea</h3><p>找到后填充即可</p>
+<pre><code>textareaNodes, textareaErr := f.tab.GetNodeIDs(`textarea`)
+if textareaErr != nil || len(textareaNodes) == 0 &#123;
+    logger.Logger.Debug(&quot;fillTextarea: get textarea element err&quot;)
+    if textareaErr != nil &#123;
+        logger.Logger.Debug(textareaErr)
+    &#125;
+    return
+&#125;
+
+_ = chromedp.SendKeys(textareaNodes, value, chromedp.ByNodeID).Do(tCtx)
+</code></pre>
+<h3 id="自动化提交表单"><a href="#自动化提交表单" class="headerlink" title="自动化提交表单"></a>自动化提交表单</h3><blockquote>
+<p>提交表单也有一些需要注意的问题，直接点击form表单的提交按钮会导致页面重载，我们并不希望当前页面刷新，所以除了Hook住前端导航请求之外，我们还可以为form节点设置target属性，指向一个隐藏的iframe。具体操作的话就是新建隐藏iframe然后将form表单的target指向它即可</p>
+</blockquote>
+<pre><code>/**
+设置form的target指向一个frame
+*/
+const NewFrameTemplate = `
+(function sec_auto_new_iframe () &#123;
+    let frame = document.createElement(&quot;iframe&quot;);
+    frame.setAttribute(&quot;name&quot;, &quot;%s&quot;);
+    frame.setAttribute(&quot;id&quot;, &quot;%s&quot;);
+    frame.setAttribute(&quot;style&quot;, &quot;display: none&quot;);
+    document.body.appendChild(frame);
+&#125;)()
+`
+func (tab *Tab) setFormToFrame() &#123;
+    // 首先新建 frame
+    nameStr := tools.RandSeq(8)
+    tab.Evaluate(fmt.Sprintf(js.NewFrameTemplate, nameStr, nameStr))
+
+    // 接下来将所有的 form 节点target都指向它
+    ctx := tab.GetExecutor()
+    formNodes, formErr := tab.GetNodeIDs(`form`)
+    if formErr != nil || len(formNodes) == 0 &#123;
+        logger.Logger.Debug(&quot;setFormToFrame: get form element err&quot;)
+        if formErr != nil &#123;
+            logger.Logger.Debug(formErr)
+        &#125;
+        return
+    &#125;
+    tCtx, cancel := context.WithTimeout(ctx, time.Second*2)
+    defer cancel()
+    _ = chromedp.SetAttributeValue(formNodes, &quot;target&quot;, nameStr, chromedp.ByNodeID).Do(tCtx)
+&#125;
+</code></pre>
+<p>要成功的提交表单，就得正确触发表单的submit操作。不是所有的前端内容都有规范的表单格式，或许有一些form连个button都没有，所以这里有三种思路可供尝试，保险起见建议全部都运行一次：</p>
+<ul>
+<li>在form节点的子节点内寻找<code>type=submit</code>的节点，执行<code>elementHandle.click()</code>方法。</li>
+<li>直接对form节点执行JS语句：<code>form.submit()</code>，注意，如果form内有包含属性值<code>name=submit</code>的节点，将会抛出异常，所以注意捕获异常。</li>
+<li>在form节点的子节点内寻找所有button节点，全部执行一次<code>elementHandle.click()</code>方法。因为我们之前已经重定义并锁定了表单重置函数，所以不用担心会清空表单。</li>
+</ul>
+<p>这样，绝大部分表单我们都能触发了。</p>
+<pre><code>/**
+点击按钮 type=submit
+*/
+func (tab *Tab) clickSubmit() &#123;
+    defer tab.formSubmitWG.Done()
+
+    // 首先点击按钮 type=submit
+    ctx := tab.GetExecutor()
+
+    // 获取所有的form节点 直接执行submit
+    formNodes, formErr := tab.GetNodeIDs(`form`)
+    if formErr != nil || len(formNodes) == 0 &#123;
+        logger.Logger.Debug(&quot;clickSubmit: get form element err&quot;)
+        if formErr != nil &#123;
+            logger.Logger.Debug(formErr)
+        &#125;
+        return
+    &#125;
+    tCtx1, cancel1 := context.WithTimeout(ctx, time.Second*2)
+    defer cancel1()
+    _ = chromedp.Submit(formNodes, chromedp.ByNodeID).Do(tCtx1)
+
+    // 获取所有的input标签
+    inputNodes, inputErr := tab.GetNodeIDs(`form input[type=submit]`)
+    if inputErr != nil || len(inputNodes) == 0 &#123;
+        logger.Logger.Debug(&quot;clickSubmit: get form input element err&quot;)
+        if inputErr != nil &#123;
+            logger.Logger.Debug(inputErr)
+        &#125;
+        return
+    &#125;
+    tCtx2, cancel2 := context.WithTimeout(ctx, time.Second*2)
+    defer cancel2()
+    _ = chromedp.Click(inputNodes, chromedp.ByNodeID).Do(tCtx2)
+&#125;
+
+/**
+click all button
+*/
+func (tab *Tab) clickAllButton() &#123;
+    defer tab.formSubmitWG.Done()
+
+    // 获取所有的form中的button节点
+    ctx := tab.GetExecutor()
+    // 获取所有的button标签
+    btnNodeIDs, bErr := tab.GetNodeIDs(`form button`)
+    if bErr != nil || len(btnNodeIDs) == 0 &#123;
+        logger.Logger.Debug(&quot;clickAllButton: get form button element err&quot;)
+        if bErr != nil &#123;
+            logger.Logger.Debug(bErr)
+        &#125;
+        return
+    &#125;
+    tCtx, cancel1 := context.WithTimeout(ctx, time.Second*2)
+    defer cancel1()
+    _ = chromedp.Click(btnNodeIDs, chromedp.ByNodeID).Do(tCtx)
+
+    // 使用JS的click方法进行点击
+    var btnNodes []*cdp.Node
+    tCtx2, cancel2 := context.WithTimeout(ctx, time.Second*2)
+    defer cancel2()
+    err := chromedp.Nodes(btnNodeIDs, &amp;btnNodes, chromedp.ByNodeID).Do(tCtx2)
+    if err != nil &#123;
+        return
+    &#125;
+    for _, node := range btnNodes &#123;
+        _ = tab.EvaluateWithNode(js.FormNodeClickJS, node)
+    &#125;
+&#125;
+</code></pre>
+<h3 id="事件触发"><a href="#事件触发" class="headerlink" title="事件触发"></a>事件触发</h3><p>1.对JavaScript协议的内联事件触发，执行以下js</p>
+<pre><code>(async function click_all_a_tag_javascript()&#123;
+    let nodeListHref = document.querySelectorAll(&quot;[href]&quot;);
+    nodeListHref = window.randArr(nodeListHref);
+    for (let node of nodeListHref) &#123;
+        let attrValue = node.getAttribute(&quot;href&quot;);
+        if (attrValue.toLocaleLowerCase().startsWith(&quot;javascript:&quot;)) &#123;
+            await window.sleep(%f);
+            try &#123;
+                eval(attrValue.substring(11));
+            &#125;
+            catch &#123;&#125;
+        &#125;
+    &#125;
+    let nodeListSrc = document.querySelectorAll(&quot;[src]&quot;);
+    nodeListSrc = window.randArr(nodeListSrc);
+    for (let node of nodeListSrc) &#123;
+        let attrValue = node.getAttribute(&quot;src&quot;);
+        if (attrValue.toLocaleLowerCase().startsWith(&quot;javascript:&quot;)) &#123;
+            await window.sleep(%f);
+            try &#123;
+                eval(attrValue.substring(11));
+            &#125;
+            catch &#123;&#125;
+        &#125;
+    &#125;
+&#125;)()
+</code></pre>
+<p>2.对常见的内联事件触发</p>
+<pre><code>(async function trigger_all_inline_event()&#123;
+    let eventNames = [&quot;onabort&quot;, &quot;onblur&quot;, &quot;onchange&quot;, &quot;onclick&quot;, &quot;ondblclick&quot;, &quot;onerror&quot;, &quot;onfocus&quot;, &quot;onkeydown&quot;, &quot;onkeypress&quot;, &quot;onkeyup&quot;, &quot;onload&quot;, &quot;onmousedown&quot;, &quot;onmousemove&quot;, &quot;onmouseout&quot;, &quot;onmouseover&quot;, &quot;onmouseup&quot;, &quot;onreset&quot;, &quot;onresize&quot;, &quot;onselect&quot;, &quot;onsubmit&quot;, &quot;onunload&quot;];
+    for (let eventName of eventNames) &#123;
+        let event = eventName.replace(&quot;on&quot;, &quot;&quot;);
+        let nodeList = document.querySelectorAll(&quot;[&quot; + eventName + &quot;]&quot;);
+        if (nodeList.length &gt; 100) &#123;
+            nodeList = nodeList.slice(0, 100);
+        &#125;
+        nodeList = window.randArr(nodeList);
+        for (let node of nodeList) &#123;
+            await window.sleep(%f);
+            let evt = document.createEvent(&#39;CustomEvent&#39;);
+            evt.initCustomEvent(event, false, true, null);
+            try &#123;
+                node.dispatchEvent(evt);
+            &#125;
+            catch &#123;&#125;
+        &#125;
+    &#125;
+&#125;)()
+</code></pre>
+<p>3.对之前hook的事件触发，对于某些节点，可能会存在子节点也响应的事件，为了性能考虑，可以将层数控制到三层，且对兄弟节点随机选择一个触发。简单画图说明：</p>
+<p><img src="https://images.seebug.org/content/images/2021/09/26/1632625462000-10zlidm.png-w331s" alt="图片"></p>
+<pre><code>(async function trigger_all_dom2_custom_event() &#123;
+    function transmit_child(node, event, loop) &#123;
+        let _loop = loop + 1
+        if (_loop &gt; 4) &#123;
+            return;
+        &#125;
+        if (node.nodeType === 1) &#123;
+            if (node.hasChildNodes) &#123;
+                let index = parseInt(Math.random()*node.children.length,10);
+                try &#123;
+                    node.children[index].dispatchEvent(event);
+                &#125; catch(e) &#123;&#125;
+                let max = node.children.length&gt;5?5:node.children.length;
+                for (let count=0;count&lt;max;count++) &#123;
+                    let index = parseInt(Math.random()*node.children.length,10);
+                    transmit_child(node.children[index], event, _loop);
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+    let nodes = document.querySelectorAll(&quot;[sec_auto_dom2_event_flag]&quot;);
+    if (nodes.length &gt; 200) &#123;
+        nodes = nodes.slice(0, 200);
+    &#125;
+    nodes = window.randArr(nodes);
+    for (let node of nodes) &#123;
+        let loop = 0;
+        await window.sleep(%f);
+        let event_name_list = node.getAttribute(&quot;sec_auto_dom2_event_flag&quot;).split(&quot;|&quot;);
+        let event_name_set = new Set(event_name_list);
+        event_name_list = [...event_name_set];
+        for (let event_name of event_name_list) &#123;
+            let evt = document.createEvent(&#39;CustomEvent&#39;);
+            evt.initCustomEvent(event_name, true, true, null);
+
+            if (event_name == &quot;click&quot; || event_name == &quot;focus&quot; || event_name == &quot;mouseover&quot; || event_name == &quot;select&quot;) &#123;
+                transmit_child(node, evt, loop);
+            &#125;
+            if ( (node.className &amp;&amp; node.className.includes(&quot;close&quot;)) || (node.id &amp;&amp; node.id.includes(&quot;close&quot;))) &#123;
+                continue;
+            &#125;
+
+            try &#123;
+                node.dispatchEvent(evt);
+            &#125; catch(e) &#123;&#125;
+        &#125;
+    &#125;
+&#125;)()
+</code></pre>
+<p>4.监控插入的节点，如果新增节点的href src含有JavaScript协议，则手动触发。这似乎会漏一些内联事件的触发。</p>
+<pre><code>(function
+init_observer_sec_auto_b() &#123; 
+window.dom_listener_func_sec_aut
+o = function (e) &#123;  
+let node = e.target;  
+let nodeListSrc =
+node.querySelectorAll(&quot;[src]&quot;);  
+for (let each of
+nodeListSrc) &#123;     
+if (each.src) &#123;        
+
+window.addLink(each.src, &quot;DOM&quot;);      
+let attrValue =
+each.getAttribute(&quot;src&quot;);       
+if
+(attrValue.toLocaleLowerCase().st
+artsWith(&quot;javascript:&quot;)) &#123;        
+try &#123;                
+
+eval(attrValue.substring(11));          
+&#125;     
+catch &#123;&#125;     
+&#125;    
+&#125;   
+&#125;  
+
+let nodeListHref = 
+node.querySelectorAll(&quot;[href]&quot;);    
+nodeListHref = 
+window.randArr(nodeListHref);  
+for (let each of 
+nodeListHref) &#123;    
+if (each.href) &#123;         
+
+window.addLink(each.href, &quot;DOM&quot;);       
+let attrValue =
+each.getAttribute(&quot;href&quot;);       
+if
+(attrValue.toLocaleLowerCase().st
+artsWith(&quot;javascript:&quot;)) &#123;        
+try &#123;    
+
+eval(attrValue.substring(11));        
+&#125;           
+catch &#123;&#125;       
+&#125;      
+&#125;   
+&#125;
+&#125;;
+document.addEventListener(&#39;DOMNodeInserted&#39;,
+window.dom_listener_func_sec_auto, true); document.addEventListener(&#39;DOMSubtreeModified&#39;, 
+window.dom_listener_func_sec_auto, true); document.addEventListener(&#39;DOMNodeInsertedIntoDocument&#39;, window.dom_listener_func_sec_auto, true); 
+document.addEventListener(&#39;DOMAttrModified&#39;, 
+window.dom_listener_func_sec_auto, true);
+&#125;)()`
+</code></pre>
+<h2 id="窗口阻塞处理"><a href="#窗口阻塞处理" class="headerlink" title="窗口阻塞处理"></a>窗口阻塞处理</h2><p>crawler处理了 alert()&#x2F;prompt() 基础认证等等的阻塞。</p>
+<pre><code>chromedp.ListenTarget(*tab.Ctx, func(v interface&#123;&#125;) &#123;
+        switch v := v.(type) &#123;
+        //case *network.EventLoadingFailed:
+        //    logger.Logger.Error(&quot;EventLoadingFailed &quot;, v.ErrorText)
+        // 401 407 要求认证 此时会阻塞当前页面 需要处理解决
+        case *fetch.EventAuthRequired:
+            tab.WG.Add(1)
+            go tab.HandleAuthRequired(v)
+
+        // close Dialog
+        case *page.EventJavascriptDialogOpening:
+            tab.WG.Add(1)
+            go tab.dismissDialog()
+        &#125;
+&#125;)
+</code></pre>
+<p>但是还有 打印 和 文件上传窗口可能阻塞窗口</p>
+<p>打印事件可以hook函数，文件上传窗口可以用<code>Page.setInterceptFileChooserDialog</code>过滤。</p>
+<h2 id="End"><a href="#End" class="headerlink" title="End"></a>End</h2><p>一些还可以优化的部分，表单填充可以识别参数长度<code>max-length</code>、<code>min-length</code></p>
+<p>从Crawlergo的设计和源码中能提取出很多东西来,</p>
+<ul>
+<li>基于网页结构的大量网页快速相似匹配，如果能集成到那些网络空间引擎中应该会很好玩，但似乎还没有一家做过。</li>
+</ul>
+<p>有了原生的动态爬虫支持，对自动化漏扫也有了更多的想法，例如通过hook一些触发函数，污点检测来检测dom xss，爬虫的原始请求包可以直接推到w13scan中。有了自动化爬虫，后续所有流量都可以存储一份，直接用搜索语法来找到相同参数的页面进行poc测试等等。。</p>
+<p>作者的代码风格太不go了，想重写一份了。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><p><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/178339#h2-17">https://www.anquanke.com/post/id/178339#h2-17</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/7064#toc-11">https://xz.aliyun.com/t/7064#toc-11</a></p>
+</li>
+</ul>
+<hr>
+
+            
+        </section>
+        <footer class="blog-post-page-tags">
+        
+			
+		
+        </footer>
+    </article>
+    <article class="blog-post-page-readmore">
+    	
+    	
+		
+			<a href="/2022/10/14/vscode-backdoor/" class="blog-post-page-readmore-prev" data-toggle="tooltip" data-placement="top" title="利用 vscode 打造后门门中门">上一篇</a>
+		
+
+		
+		
+			<a href="/2021/05/02/ssl-fingerprint-bypass/" class="blog-post-page-readmore-next" data-toggle="tooltip" data-placement="top" title="SSL 指纹识别和绕过">下一篇</a>
+		
+
+        <div style="clear: both;"></div>
+    </article>
+
+    <article class="blog-post-block blog-post-page-content">
+            <div class="row">
+            
+                <div class="col-md-4 col-sm-4 post-page-more-btn">
+                    <span class="post-comments-btn btn btn-info btn-block" data-toggle="tooltip" data-placement="top" title="本站采用Disqus评论组件，若您没有科学上网可能会无法查看并评论">加载评论</span>
+                </div>
+            
+                <div class="col-md-4 col-sm-4 post-page-more-btn">
+                    <span  data-toggle="modal" data-target="#post-donate-content">
+                        <span id="post-donate-btn" class="btn btn-danger btn-block" data-toggle="tooltip" data-placement="top" title="如果您觉得本文还不错或者对您有帮助，可以考虑打赏一下作者哦">打赏本文</span>
+                    </span>
+                </div>
+                <div class="col-md-4 col-sm-4 post-page-more-btn">
+                    <span  data-toggle="modal" data-target="#post-qrcode-content">
+                        <span><span id="post-qrcode-btn" class="btn btn-success btn-block" data-toggle="tooltip" data-placement="top" title="微信扫描二维码手机端查看本文及分享本文">二维码</span></span>
+                    </span>
+                </div>
+            </div>
+        <div class="post-more-function-br"></div>
+
+        <div class="modal fade" id="post-donate-content" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">打赏本文</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row post-donate-content">
+                            <div class="col-md-4">
+                                <p>支付宝</p>
+                                <img class="post-donate-content-img no-lightbox" src="http://i.niupic.com/images/2022/12/30/aepT.png"/>
+                            </div>
+                            <div class="col-md-4">
+                                <p>微信</p>
+                                <img class="post-donate-content-img no-lightbox" src="http://i.niupic.com/images/2022/12/30/aepT.png"/>
+                            </div>
+                            <div class="col-md-4">
+                                <p>财付通</p>
+                                <img class="post-donate-content-img no-lightbox" src="http://i.niupic.com/images/2022/12/30/aepT.png"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="post-qrcode-content" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">文章二维码</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row post-qrcode-content">
+                            <span class="post-qrcode-content-canvas"></span>
+                            <img class="post-qrcode-content-img no-lightbox" src=""/>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // post QRcode
+            // 中文转码
+            function toUtf8(str) {
+                var out, i, len, c;
+                out = "";
+                len = str.length;
+                for (i = 0; i < len; i++) {
+                    c = str.charCodeAt(i);
+                    if ((c >= 0x0001) && (c <= 0x007F)) {
+                        out += str.charAt(i);
+                    } else if (c > 0x07FF) {
+                        out += String.fromCharCode(0xE0 | ((c >> 12) & 0x0F));
+                        out += String.fromCharCode(0x80 | ((c >> 6) & 0x3F));
+                        out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+                    } else {
+                        out += String.fromCharCode(0xC0 | ((c >> 6) & 0x1F));
+                        out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+                    }
+                }
+                return out;
+            }
+            // 生成
+            var qrcode= $('.post-qrcode-content-canvas').qrcode({width: 150,height: 150,text: toUtf8("http://justfortest.cc/2021/10/07/crawler-source-learn/")}).hide();
+            var canvas=qrcode.find('canvas').get(0);
+            $('.post-qrcode-content-img').attr('src',canvas.toDataURL('image/jpg'));
+        </script>
+
+        
+    </article>
+    
+</div>
+
+                
+            <footer class="blog-footer">
+                <p class="blog-footer-left">Copyright © 2017 <a href="http://justfortest.cc">背着键盘去流浪</a></p>
+                <p class="blog-footer-right">Powered by <a href="https://hexo.io" target="_blank">Hexo</a>,Themes <a href="https://weic.me/themes-life/" target="_blank">Life</a></p>
+            </footer>
+        </div><!--博客主栏结束-->
+        <!--博客侧边栏开始-->
+        <div class="col-xl-3 blog-sidebar">
+            <div class="blog-sidebar-title">
+                <a href="">背着键盘去流浪</a>
+            </div>
+            <div class="blog-sidebar-logo">
+                <img src="http://i.niupic.com/images/2022/12/30/aepT.png">
+            </div>
+            <div class="blog-sidebar-count blog-sidebar-padding">
+                <div class="blog-sidebar-count-left">
+                    <p class="blog-sidebar-count-p">11</p>
+                    <span class="blog-sidebar-count-span">文章</span>
+                </div>
+                <div class="blog-sidebar-count-right">
+                    <p class="blog-sidebar-count-p">0</p>
+                    <span class="blog-sidebar-count-span">标签</span>
+                </div>
+                <div style="clear: both;"></div>
+            </div>
+            <div class="blog-sidebar-icon blog-sidebar-padding">
+                <ul>
+                    <li><a href="" class="icon-github" target="_blank" data-toggle="tooltip" data-placement="top" title="Github"><i class="fa fa-github"></i></a></li>
+                    <li><a href="" class="icon-weibo" target="_blank" data-toggle="tooltip" data-placement="top" title="新浪微博"><i class="fa fa-weibo"></i></a></li>
+                    <li><a href="" class="icon-twitter" target="_blank" data-toggle="tooltip" data-placement="top" title="Twitter"><i class="fa fa-twitter"></i></a></li>
+                    <!--<li><a href="" class="icon-facebook" target="_blank" data-toggle="tooltip" data-placement="top" title="FaceBook"><i class="fa fa-facebook"></i></a></li>-->
+                    <li><a href="mailto:" class="icon-email" data-toggle="tooltip" data-placement="top" title="E-Mail"><i class="fa fa-envelope"></i></a></li>
+                    <li><a href="" class="icon-rss" data-toggle="tooltip" target="_blank" data-placement="top" title="RSS"><i class="fa fa-rss"></i></a></li>
+                </ul>
+            </div>
+            <div class="blog-sidebar-categories">
+                <h4 class="blog-sidebar-h4"><i class="fa fa-folder-open"></i>&nbsp;文章分类</h4>
+                <ul class="list-group blog-sidebar-padding">
+                  
+                </ul>
+            </div>
+            <div class="blog-sidebar-tags">
+                <h4 class="blog-sidebar-h4"><i class="fa fa-tag"></i>&nbsp;标签云</h4>
+                <ul class="blog-sidebar-tags-ul blog-sidebar-padding">
+                  
+                </ul>
+            </div>
+            <script>
+              // 博客侧栏标签云随机色
+              var tag_cloud = $('.tag-could');
+              tag_cloud.each(function () {
+                  var Cnum = 9;
+                  var Crand = parseInt(Math.random() * Cnum);
+                  $(this).addClass("tag-could" + Crand);
+              })
+            </script>
+            <!--返回顶部按钮-->
+            <div class="retop">
+                <i class="fa fa-angle-up"></i>
+            </div>
+        </div><!--博客侧边栏结束-->
+    </div>
+</div>
+<script src="/js/LeanStatistics.min.js"></script>
+<script src="/js/Life.js"></script>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+    hljs.initLineNumbersOnLoad();
+    otherF();
+    LeanStatistics();
+    $(document).pjax('a', '#pjax-box', {fragment:'#pjax-box', timeout:8000}).on('pjax:complete', function() {
+      $('pre code').each(function(i, block){
+        hljs.highlightBlock(block);
+      })
+      $('code.hljs').each(function(i, block) {
+        hljs.lineNumbersBlock(block);
+      });
+      LeanStatistics();
+    }).on('pjax:start', function() { NProgress.start(); }).on('pjax:end',   function() {
+      NProgress.done();
+      otherF();
+    });
+</script>
+</body>
+</html>
